@@ -1,0 +1,24 @@
+{
+  "name": "bloomie-dashboard-railway",
+  "version": "11.0.0",
+  "description": "Bloomie Dashboard for OpenClaw — served via Express wrapper on Railway",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "cd bloomie-vite && npm run dev",
+    "build": "cd bloomie-vite && npm install && npm run build",
+    "postinstall": "cd bloomie-vite && npm install"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "http-proxy-middleware": "^2.0.6",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {},
+  "author": "Jaden (OpenClaw)",
+  "license": "MIT"
+}
