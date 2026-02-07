@@ -1,0 +1,109 @@
+/**
+ * BLOOMIE DASHBOARD SERVER
+ * 
+ * Drop-in Express server for b301 integration
+ * 
+ * Features:
+ * - Serves Vite-built dashboard at root
+ * - Proxies OpenClaw Gateway at /__openclaw__/*
+ * - Handles SPA routing
+ * - WebSocket support
+ * 
+ * Usage:
+ * 1. Copy this file to your repo as server.js
+ * 2. Ensure dependencies: npm install express http-proxy-middleware ws
+ * 3. Run: node server.js
+ */
+
+const express = require('express');
+const path = require('path');
+const { createProxyMiddleware } = require('http-proxy-middleware');
+
+const app = express();
+const PORT = process.env.PORT || 8080;
+
+console.log('\n╔════════════════════════════════════════════════════════════╗');
+console.log('║          BLOOMIE DASHBOARD SERVER v11                      ║');
+console.log('╚════════════════════════════════════════════════════════════╝\n');
+
+// ════════════════════════════════════════════════════════════════════════════
+// 1️⃣  SERVE BLOOMIE DASHBOARD (Vite-built)
+// ════════════════════════════════════════════════════════════════════════════
+const dashboardPath = path.join(__dirname, 'bloomie-vite', 'dist');
+console.log(`[Dashboard] Serving from: ${dashboardPath}`);
+
+app.use(express.static(dashboardPath, {
+  maxAge: '1h',  // Cache static assets for 1 hour
+  etag: false
+}));
+
+// ════════════════════════════════════════════════════════════════════════════
+// 2️⃣  PROXY OPENCLAW GATEWAY
+// ════════════════════════════════════════════════════════════════════════════
+const GATEWAY_HOST = process.env.GATEWAY_HOST || '127.0.0.1';
+const GATEWAY_PORT = process.env.GATEWAY_PORT || 18789;
+const GATEWAY_URL = `http://${GATEWAY_HOST}:${GATEWAY_PORT}`;
+
+console.log(`[Gateway] Target: ${GATEWAY_URL}`);
+console.log(`[Gateway] Proxy at: http://localhost:${PORT}/__openclaw__/*\n`);
+
+app.use('/__openclaw__', createProxyMiddleware({
+  target: GATEWAY_URL,
+  changeOrigin: true,
+  pathRewrite: {
+    '^/__openclaw__': ''  // Remove prefix before sending to gateway
+  },
+  ws: true,  // ⭐️ CRITICAL: Enable WebSocket proxying
+  
+  // Log API requests (not WebSocket)
+  onProxyReq: (proxyReq, req, res) => {
+    if (!req.url.endsWith('/ws')) {
+      console.log(`[Proxy] ${req.method.padEnd(6)} ${req.url}`);
+    }
+  },
+  
+  // Error handling
+  onError: (err, req, res) => {
+    console.error(`[Proxy Error] ${err.message}`);
+    res.status(503).json({
+      error: 'Gateway unavailable',
+      details: err.message,
+      gateway: GATEWAY_URL
+    });
+  }
+}));
+
+// ════════════════════════════════════════════════════════════════════════════
+// 3️⃣  SPA FALLBACK (Client-side routing)
+// ════════════════════════════════════════════════════════════════════════════
+app.get('*', (req, res) => {
+  res.sendFile(path.join(dashboardPath, 'index.html'), (err) => {
+    if (err) {
+      console.error(`[SPA] 404: ${req.path}`);
+      res.status(404).json({ error: 'Not found' });
+    }
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// 4️⃣  START SERVER
+// ════════════════════════════════════════════════════════════════════════════
+app.listen(PORT, () => {
+  console.log(`╔════════════════════════════════════════════════════════════╗`);
+  console.log(`║  ✅ Dashboard running at http://localhost:${PORT}`);
+  console.log(`║  🔗 Gateway proxy at http://localhost:${PORT}/__openclaw__`);
+  console.log(`╚════════════════════════════════════════════════════════════╝\n`);
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// 5️⃣  GRACEFUL SHUTDOWN
+// ════════════════════════════════════════════════════════════════════════════
+process.on('SIGTERM', () => {
+  console.log('\n[Dashboard] SIGTERM received, shutting down gracefully...');
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('\n[Dashboard] SIGINT received, shutting down gracefully...');
+  process.exit(0);
+});
