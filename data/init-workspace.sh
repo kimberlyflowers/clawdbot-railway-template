@@ -1,6 +1,6 @@
 #!/bin/bash
 # Bloomie First-Boot Initialization
-# Runs automatically on first deployment to set up workspace
+# Creates workspace files and config to skip setup page
 
 set -e
 
@@ -11,10 +11,24 @@ if [ -f "$INIT_LOCK" ]; then
     exit 0
 fi
 
-# Create workspace directories
+# Create STATE_DIR (.openclaw is the default OpenClaw state directory)
+mkdir -p /data/.openclaw
 mkdir -p /data/workspace/memory
 
-# Create IDENTITY.md
+# Create openclaw.json config (tells app it's configured, skips setup page)
+cat > /data/.openclaw/openclaw.json << 'CONFIG'
+{
+  "version": 1,
+  "gateway": {
+    "port": 18789,
+    "origin": "http://localhost:8080"
+  },
+  "defaultModel": "anthropic/claude-haiku-4-5",
+  "reasoning": "off"
+}
+CONFIG
+
+# Create workspace identity files
 cat > /data/workspace/IDENTITY.md << 'IDENTITY'
 # IDENTITY.md - Who Am I?
 
@@ -24,7 +38,6 @@ cat > /data/workspace/IDENTITY.md << 'IDENTITY'
 - **Emoji:** 💼
 IDENTITY
 
-# Create SOUL.md
 cat > /data/workspace/SOUL.md << 'SOUL'
 # SOUL.md - Who You Are
 
@@ -59,7 +72,6 @@ _You're Kimberly's employee. Act like it._
 Professional, capable, direct. You get things done. No corporate BS. Just solid work.
 SOUL
 
-# Create AGENTS.md
 cat > /data/workspace/AGENTS.md << 'AGENTS'
 # AGENTS.md - Your Workspace
 
@@ -72,39 +84,23 @@ Before doing anything:
 1. Read `SOUL.md` — this is who you are
 2. Read `USER.md` — this is who you're helping
 3. Read `memory/YYYY-MM-DD.md` for recent context
-4. If in MAIN SESSION: Read `MEMORY.md`
 
 ## Memory
 
 - **Daily notes:** `memory/YYYY-MM-DD.md` — raw logs
 - **Long-term:** `MEMORY.md` — curated memories (main session only)
 
-Capture what matters. Decisions, context, lessons learned.
-
 ## Safety
 
-- Don't exfiltrate private data. Ever.
+- Don't exfiltrate private data.
 - Don't run destructive commands without asking.
 - When in doubt, ask.
-
-## External vs Internal
-
-**Safe to do freely:**
-- Read files, explore, learn
-- Search web, check calendars
-- Work within workspace
-
-**Ask first:**
-- Sending emails, tweets, public posts
-- Anything that leaves the machine
-- Anything you're uncertain about
 
 ## Make It Yours
 
 Add your own conventions, style, and rules as you work.
 AGENTS
 
-# Create USER.md
 cat > /data/workspace/USER.md << 'USER'
 # USER.md - About Your Human
 
@@ -113,36 +109,18 @@ cat > /data/workspace/USER.md << 'USER'
 - **Notes:** Your employer. Follow SOUL.md strictly.
 USER
 
-# Create TOOLS.md
 cat > /data/workspace/TOOLS.md << 'TOOLS'
 # TOOLS.md - Local Notes
 
 Skills define _how_ tools work. This file is for your specifics.
 
-## What Goes Here
-
-- Camera names and locations
-- SSH hosts and aliases
-- Preferred voices for TTS
-- Speaker/room names
-- Device nicknames
-- Anything environment-specific
-
-## Why Separate?
-
-Skills are shared. Your setup is yours. Keep them apart.
-
----
-
 Add whatever helps you do your job. This is your cheat sheet.
 TOOLS
 
-# Create HEARTBEAT.md
 cat > /data/workspace/HEARTBEAT.md << 'HEARTBEAT'
 # HEARTBEAT.md
 
 # Keep this file empty to skip heartbeat API calls.
-# Add tasks when you want periodic checks.
 HEARTBEAT
 
 # Initialize git
