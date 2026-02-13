@@ -146,12 +146,47 @@ async function waitForGatewayReady(opts = {}) {
   return false;
 }
 
+async function runInitWorkspaceScript() {
+  const initScript = path.join(process.cwd(), "data", "init-workspace.sh");
+  if (!fs.existsSync(initScript)) {
+    return; // Script not present, skip
+  }
+  
+  try {
+    console.log("[init] Running workspace initialization...");
+    await new Promise((resolve, reject) => {
+      childProcess.spawn("bash", [initScript], {
+        stdio: "inherit",
+        env: { ...process.env },
+      }).on("exit", (code) => {
+        if (code === 0) {
+          console.log("[init] Workspace initialization complete");
+          resolve();
+        } else {
+          console.warn(`[init] Script exited with code ${code}`);
+          resolve(); // Don't fail startup
+        }
+      }).on("error", (err) => {
+        console.warn(`[init] Script error: ${String(err)}`);
+        resolve();
+      });
+    });
+  } catch (err) {
+    console.warn(`[init] Failed to run init script: ${String(err)}`);
+  }
+}
+
 async function startGateway() {
   if (gatewayProc) return;
-  if (!isConfigured()) throw new Error("Gateway cannot start: not configured");
 
   fs.mkdirSync(STATE_DIR, { recursive: true });
   fs.mkdirSync(WORKSPACE_DIR, { recursive: true });
+
+  // Run init script first (creates openclaw.json config)
+  await runInitWorkspaceScript();
+
+  // Now check if configured
+  if (!isConfigured()) throw new Error("Gateway cannot start: not configured");
 
   const args = [
     "gateway",
