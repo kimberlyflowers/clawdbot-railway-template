@@ -67,9 +67,9 @@ ENV OPENCLAW_PUBLIC_PORT=8080
 ENV PORT=8080
 EXPOSE 8080
 
-# Copy startup script and initialization script
+# Copy startup script and Bloomie logo init (minimal, text-only)
 COPY start.sh /app/start.sh
-COPY data/init-workspace.sh /app/data/init-workspace.sh
-RUN chmod +x /app/start.sh /app/data/init-workspace.sh
+COPY data/init-bloomie-logo.sh /app/data/init-bloomie-logo.sh
+RUN chmod +x /app/start.sh /app/data/init-bloomie-logo.sh
 
 CMD ["/app/start.sh"]
