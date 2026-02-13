@@ -66,4 +66,10 @@ COPY src ./src
 ENV OPENCLAW_PUBLIC_PORT=8080
 ENV PORT=8080
 EXPOSE 8080
-CMD ["node", "src/server.js"]
+
+# Copy startup script and initialization script
+COPY start.sh /app/start.sh
+COPY data/init-workspace.sh /app/data/init-workspace.sh
+RUN chmod +x /app/start.sh /app/data/init-workspace.sh
+
+CMD ["/app/start.sh"]
