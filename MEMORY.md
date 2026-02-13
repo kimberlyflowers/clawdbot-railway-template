@@ -34,7 +34,7 @@ Status: Awaiting Phase 2
 
 See detailed notes below under "Bloomie Control UI Reskin Project"
 
-### 3. Johnathon's Instance - Bloomie-YES (✅ DEPLOYED & CONFIGURED)
+### 3. Johnathon's Instance - Bloomie-YES (✅ DEPLOYED, REDEPLOYING WITH LOGO SWAP)
 Date: 2026-02-13 20:04 UTC
 Status: Ready for manual workspace initialization
 
@@ -89,6 +89,20 @@ Status: Ready for manual workspace initialization
 - **Responsibilities:** Operations coordination, project tracking, process execution
 - **Skills Available:** bloomie-drive-delivery (others TBD based on config)
 - **Task Protocol:** Same as Jaden — gather, confirm, execute, deliver, close
+
+**Latest Deployment (2026-02-13 20:24 UTC):**
+- ✅ GitHub push: Bloomie logo swap code committed to main
+- ✅ Railway redeploy: Triggered with minimal init script
+- ✅ Logo swap: Changes "OpenClaw" → "🌸 Bloomie" (text only, no color/font changes)
+- ⏳ Build & deploy: ~5-7 minutes total
+- 📍 Instance: https://clawdbot-production-8b88.up.railway.app
+
+**What Johnathon Gets:**
+- Fresh OpenClaw setup on first boot
+- Workspace files (IDENTITY.md, SOUL.md, AGENTS.md, USER.md, TOOLS.md, HEARTBEAT.md)
+- Simple logo swap: "🌸 Bloomie" in header (nothing else changes)
+- Ready for work: bloomie-drive-delivery skill available
+- Stable & clean: No full theme reskin (saved for Jaden's instance)
 
 ---
 
