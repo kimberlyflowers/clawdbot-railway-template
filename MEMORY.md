@@ -1,5 +1,32 @@
 # MEMORY.md — Projects & Context
 
+## Backups & Recovery
+
+### Full Workspace Backup (2026-02-13 18:44 UTC)
+**Status:** ✅ Complete and stored in Bloomie Deliveries folder
+
+**What's backed up:**
+- `/data/workspace/` (164MB source → 60MB compressed)
+- `/data/secrets/` (OAuth2 tokens, credentials)
+
+**Backup file:** `Bloomie-Workspace-Backup-2026-02-13.tar.gz`
+
+**Live link (shareable):** https://drive.google.com/file/d/1BXDnX6nUYpqPgZ35hAawktaGvElmpbJ2/view?usp=sharing
+
+**View only:** https://drive.google.com/file/d/1BXDnX6nUYpqPgZ35hAawktaGvElmpbJ2/view
+
+**Recovery instructions (if needed):**
+```bash
+# Download the tar.gz from Drive
+# Then:
+cd /
+tar -xzf Bloomie-Workspace-Backup-2026-02-13.tar.gz
+```
+
+**Why:** In case a future deploy wipes /data/, this archive has everything needed to recover workspace state, git history, and credentials.
+
+---
+
 ## Current Projects
 
 ### 1. Bloomie Control UI Reskin (Phase 1 Complete)
