@@ -34,6 +34,64 @@ Status: Awaiting Phase 2
 
 See detailed notes below under "Bloomie Control UI Reskin Project"
 
+### 3. Johnathon's Instance - Bloomie-YES (✅ DEPLOYED & CONFIGURED)
+Date: 2026-02-13 20:04 UTC
+Status: Ready for manual workspace initialization
+
+**What I built:**
+- Complete Bloomie operations agent instance on Railway
+- Cloned from same codebase as Jaden (kimberlyflowers/clawdbot-railway-template)
+- Fresh workspace with Johnathon's own identity files (IDENTITY.md, SOUL.md)
+- Bloomie branding CSS overrides prepared
+- Setup guide and recovery packages uploaded to Google Drive
+
+**Instance Details:**
+- **Name:** Bloomie-YES
+- **URL:** https://clawdbot-production-8b88.up.railway.app
+- **Project ID:** c9af8ed1-b3ef-4ba0-93c2-472edb5033f7
+- **Service ID:** d40d3b8c-f23a-4050-acff-e9c637537965
+- **Gateway Token:** de0e7f6a112a9e95878cec79a327a5dc9971940a2f5624871b1b78eb91bbf7d4
+- **Volume:** Persistent /data mounted
+- **Status:** Deployed and serving setup page
+
+**Setup Packages (In Bloomie Deliveries folder):**
+1. **Johnathon-Workspace-Setup-2026-02-13.tar.gz**
+   - IDENTITY.md, SOUL.md, AGENTS.md, USER.md, TOOLS.md, HEARTBEAT.md
+   - Link: https://drive.google.com/file/d/1NDIQjN5K73I-akzK4A54y6ds_3TyRnLV/view?usp=sharing
+
+2. **Johnathon-Setup-Guide-2026-02-13.md**
+   - Step-by-step initialization instructions
+   - Link: https://drive.google.com/file/d/1006ubyUp0P3d08Q0SjPwp/view?usp=sharing
+
+3. **Bloomie-CSS-Overrides-2026-02-13.css**
+   - Branding colors (indigo #6366f1, pink #ec4899)
+   - Logo/UI customization
+   - Link: https://drive.google.com/file/d/1YqdM3Bq6Brfg6bezjVZkk3dmye8fTW3D/view
+
+**What's Ready:**
+- ✅ Instance deployed on Railway
+- ✅ Persistent volume configured (/data)
+- ✅ Environment variables set (OPENCLAW_GATEWAY_TOKEN, NODE_ENV, SETUP_PASSWORD)
+- ✅ Service initialization page accessible
+- ✅ Workspace files packaged and uploaded
+- ✅ Branding assets prepared
+
+**What Needs Manual Action (Kimberly):**
+1. Download workspace setup tar.gz from Drive
+2. Extract to /data/workspace/ on Johnathon's instance
+3. Download CSS overrides and apply to Control UI
+4. Restart Gateway to apply branding
+5. Verify instance is working with Bloomie branding visible
+
+**Johnathon's Identity:**
+- **Role:** Bloomie Operations Agent
+- **Primary Project:** Youth Empowerment School
+- **Responsibilities:** Operations coordination, project tracking, process execution
+- **Skills Available:** bloomie-drive-delivery (others TBD based on config)
+- **Task Protocol:** Same as Jaden — gather, confirm, execute, deliver, close
+
+---
+
 ### 2. bloomie-drive-delivery Skill (✅ COMPLETE & TESTED)
 Date: 2026-02-13
 Status: Fully authorized, tested, production-ready
