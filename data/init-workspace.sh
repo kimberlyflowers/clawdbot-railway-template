@@ -11,12 +11,12 @@ if [ -f "$INIT_LOCK" ]; then
     exit 0
 fi
 
-# Create STATE_DIR (.openclaw is the default OpenClaw state directory)
-mkdir -p /data/.openclaw
+# Create STATE_DIR (app uses /data/.clawdbot by default in wrapper)
+mkdir -p /data/.clawdbot
 mkdir -p /data/workspace/memory
 
-# Create openclaw.json config (tells app it's configured, skips setup page)
-cat > /data/.openclaw/openclaw.json << 'CONFIG'
+# Create openclaw.json config in correct location (app checks here, not .openclaw)
+cat > /data/.clawdbot/openclaw.json << 'CONFIG'
 {
   "version": 1,
   "gateway": {
