@@ -1,19 +1,20 @@
 #!/bin/bash
 # Bloomie Railway Startup Script
-# Runs Bloomie logo swap, then starts the wrapper server
+# Runs onboarding automation, then starts the wrapper server
 
 set -e
 
-echo "🚀 Bloomie Startup"
+echo "🚀 Bloomie Agent Startup"
 echo ""
 
-# Step 1: Run Bloomie logo swap (one-time, text only)
-if [ -x "$(dirname "$0")/data/init-bloomie-logo.sh" ]; then
-    echo "🌸 Applying Bloomie branding..."
-    bash "$(dirname "$0")/data/init-bloomie-logo.sh"
+# Step 1: Run Bloomie onboarding automation (one-time)
+# This creates everything needed: config, workspace, branding, no wizard
+if [ -x "$(dirname "$0")/data/init-bloomie-onboarding.sh" ]; then
+    echo "🌸 Running onboarding automation..."
+    bash "$(dirname "$0")/data/init-bloomie-onboarding.sh"
     echo ""
 fi
 
-# Step 2: Start the wrapper server
-echo "🌐 Starting wrapper server..."
+# Step 2: Start the wrapper server (agent boots straight to dashboard)
+echo "🌐 Starting Bloomie wrapper server..."
 exec node src/server.js
