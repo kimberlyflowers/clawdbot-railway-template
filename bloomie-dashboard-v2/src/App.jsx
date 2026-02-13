@@ -1,0 +1,100 @@
+import { useState, useEffect, useRef } from "react";
+
+/* ═══════════════════════════════════════════════════════════════ THEME ═══════════════════════════════════════════════════════════════ */
+function mk(d){return d?{bg:"#1a1a1a",sf:"#212121",cd:"#262626",ac:"#F4A261",a2:"#E76F8B",gr:"#34A853",gf:"#1a2b1a",tx:"#ececec",so:"#a0a0a0",fa:"#5c5c5c",ln:"#353535",bl:"#5B8FF9",pu:"#A78BFA",inp:"#212121",hv:"#2f2f2f"}:{bg:"#F7F8FA",sf:"#EDEEF2",cd:"#FFFFFF",ac:"#F4A261",a2:"#E76F8B",gr:"#34A853",gf:"#F0FAF0",tx:"#111827",so:"#6B7280",fa:"#D1D5DB",ln:"#E5E7EB",bl:"#3B6FD4",pu:"#7C3AED",inp:"#F4F5F7",hv:"#F0F1F3"}}
+
+/* ═══════════════════════════════════════════════════════════════ DATA ═══════════════════════════════════════════════════════════════ */
+var JOHN_IMG="data:image/jpeg;base64,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"; var BLOOMIE_IMG="data:image/png;base64,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";
+
+var AGENTS=[ {id:"sarah",nm:"Sarah Rodriguez",role:"Growth & Community Lead",img:null,grad:"linear-gradient(135deg,#E76F8B,#A78BFA)",status:"online"}, {id:"johnathon",nm:"Johnathon",role:"AI Employee",img:JOHN_IMG,grad:"linear-gradient(135deg,#F4A261,#E76F8B)",status:"online"}, {id:"maya",nm:"Maya",role:"Video Marketing Agent",img:null,grad:"linear-gradient(135deg,#5B8FF9,#34A853)",status:"idle"}, {id:"bloomie",nm:"Bloomie",role:"Help & Support",img:BLOOMIE_IMG,grad:"linear-gradient(135deg,#F4A261,#E76F8B)",status:"online"} ];
+
+var BIZ=[{id:"bloom",nm:"BLOOM",ic:"🌸",cl:"#E76F8B",pj:[{id:"bloomshield",nm:"BloomShield",ic:"🛡️"},{id:"bloomvault",nm:"BloomVault Extension",ic:"🔒"},{id:"bloombot",nm:"BloomBot Dashboard",ic:"🤖"},{id:"marketing",nm:"Marketing & Growth",ic:"📈"}]},{id:"petal",nm:"Petal Core Beauty",ic:"🌼",cl:"#F4A261",pj:[{id:"tiktok",nm:"TikTok Shop",ic:"🎬"},{id:"product",nm:"Product Line",ic:"✨"},{id:"influencer",nm:"Influencer Campaigns",ic:"📱"}]},{id:"openclaw",nm:"OpenClaw Services",ic:"🐾",cl:"#5B8FF9",pj:[{id:"fiverr",nm:"Fiverr Marketplace",ic:"💰"},{id:"maya",nm:"Maya Campaign",ic:"🎥"},{id:"dashboard",nm:"Client Dashboard",ic:"📊"}]}];
+
+var PJ=[{id:"school",ic:"🏫",nm:"The School",cl:"#F4A261",dn:12,tot:185,at:{nm:"Demographic Research",pct:60,tm:"12 min left",steps:[{t:"Pulling Census data for your area",d:true,tm:"8:01 AM"},{t:"Analyzing household income levels",d:true,tm:"8:04 AM"},{t:"Counting school-age children by zip code",d:true,tm:"8:07 AM"},{t:"Mapping competitor schools within 10 miles",d:false,a:true},{t:"Building charts and summary report",d:false}]},fin:[{t:"Mission Statement",tm:"Jan 28"},{t:"Vision Statement",tm:"Jan 30"},{t:"School Model Selection",tm:"Feb 1"}],nxt:["Market Research Report","Competitor Deep Dive","Stakeholder List"]},{id:"book",ic:"📖",nm:"The Book",cl:"#E76F8B",dn:2,tot:18,at:{nm:"Chapter 2: Why Classical Education",pct:65,tm:"25 min left",steps:[{t:"Researching classical education history",d:true,tm:"7:30 AM"},{t:"Drafting Section 2.1 — Historical roots",d:true,tm:"7:42 AM"},{t:"Drafting Section 2.2 — Grammar, Logic, Rhetoric",d:true,tm:"7:55 AM"},{t:"Drafting Section 2.3 — Modern application",d:false,a:true},{t:"Drafting Section 2.4 — Underserved communities",d:false},{t:"Final review and polish",d:false}]},fin:[{t:"Book Outline & Structure",tm:"Feb 1"},{t:"Chapter 1: The Vision",tm:"Feb 2"}],nxt:["Chapter 3","Chapter 4","Book Cover Concepts"]},{id:"event",ic:"🎤",nm:"March 15 Event",cl:"#6C63FF",dn:2,tot:6,at:{nm:"Building the Landing Page",pct:75,tm:"4 min left",steps:[{t:"Designing the page layout",d:true,tm:"8:10 AM"},{t:"Writing the event description",d:true,tm:"8:13 AM"},{t:"Adding the Eventbrite RSVP button",d:true,tm:"8:16 AM"},{t:"Testing on mobile and publishing",d:false,a:true}]},fin:[{t:"Eventbrite Listing",tm:"Today"},{t:"Event Date Confirmed",tm:"Feb 1"}],nxt:["Graphics Package","Email Blast","VIP Invitations"]}];
+
+function useW(){var s=useState(typeof window!=="undefined"?window.innerWidth:1200);useEffect(function(){var f=function(){s[1](window.innerWidth)};window.addEventListener("resize",f);return function(){window.removeEventListener("resize",f)};},[]);return s[0];}
+
+function Ring({pct,sz,cl,children}){var s=sz||52,r=(s-5)/2,c=2*Math.PI*r;return(<div style={{position:"relative",width:s,height:s,flexShrink:0}}><svg width={s} height={s} style={{transform:"rotate(-90deg)"}}><circle cx={s/2} cy={s/2} r={r} fill="none" stroke="currentColor" opacity={.1} strokeWidth={5}/><circle cx={s/2} cy={s/2} r={r} fill="none" stroke={cl} strokeWidth={5} strokeDasharray={c} strokeDashoffset={c-(pct/100)*c} strokeLinecap="round" style={{transition:"stroke-dashoffset 1s ease"}}/></svg><div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>{children}</div></div>);}
+
+function Face({sz,agent,editable}){var s=sz||30;var ag=agent||AGENTS[0];var editBadge=editable&&s>=36?(<div style={{position:"absolute",bottom:-1,right:-1,width:Math.max(16,s*.24),height:Math.max(16,s*.24),borderRadius:"50%",background:"#fff",border:"1.5px solid #ddd",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 1px 4px rgba(0,0,0,.15)",cursor:"pointer",zIndex:2}}><span style={{fontSize:Math.max(8,s*.12)}}>{"✏️"}</span></div>):null;if(ag.img){return(<div style={{width:s,height:s,flexShrink:0,position:"relative"}}><div style={{width:s,height:s,borderRadius:s*.3,overflow:"hidden",boxShadow:"0 2px 8px rgba(0,0,0,.12)",background:ag.grad}}><img src={ag.img} alt={ag.nm} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/></div>{editBadge}</div>);}var ini=ag.nm.split(" ").map(function(w){return w[0]}).join("").slice(0,2);return(<div style={{width:s,height:s,flexShrink:0,position:"relative"}}><div style={{width:s,height:s,borderRadius:s*.3,overflow:"hidden",background:ag.grad,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 8px rgba(0,0,0,.12)"}}><span style={{fontSize:s*.38,fontWeight:700,color:"#fff"}}>{ini}</span></div>{editBadge}</div>);}
+
+function BloomieLogo({sz}){var s=sz||36;return(<div style={{position:"relative",width:s,height:s,flexShrink:0}}><div style={{width:s,height:s,borderRadius:s*.28,overflow:"hidden",background:"linear-gradient(135deg,#F4A261,#E76F8B)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 3px 12px #E76F8B40",position:"relative",zIndex:1}}><svg width={s*.65} height={s*.65} viewBox="0 0 100 100" fill="none">{[0,72,144,216,288].map(function(r,i){return <ellipse key={i} cx="50" cy="38" rx="14" ry="20" fill="#fff" opacity={i%2===0?.9:.8} transform={"rotate("+r+" 50 50)"}/>})}<circle cx="50" cy="50" r="10" fill="#FFE0C2"/><circle cx="50" cy="50" r="5" fill="#F4A261"/></svg></div></div>);}
+
+function Bar({pct,cl}){return(<div style={{width:"100%",height:6,borderRadius:3,background:"currentColor",opacity:.08,position:"relative",overflow:"hidden"}}><div style={{position:"absolute",inset:0,borderRadius:3,overflow:"hidden"}}><div style={{height:"100%",borderRadius:3,width:pct+"%",background:"linear-gradient(90deg,"+cl+","+cl+"BB)",position:"relative",transition:"width 1.2s cubic-bezier(.4,0,.2,1)"}}><div style={{position:"absolute",right:-1,top:-2,width:10,height:10,borderRadius:"50%",background:cl,boxShadow:"0 0 8px "+cl+"66",animation:"pulse 1.5s ease infinite"}}/></div></div></div>);}
+
+export default function BloomieDashboard(){
+  var W=useW(),mob=W<768;
+  var _dk=useState(true),dark=_dk[0],setDark=_dk[1];
+  var c=mk(dark);
+  var _pg=useState("chat"),pg=_pg[0],setPg=_pg[1];
+  var _pk=useState("school"),pk=_pk[0],setPk=_pk[1];
+  var _agt=useState("sarah"),agtId=_agt[0],setAgtId=_agt[1];
+  var curAgent=AGENTS.find(function(a){return a.id===agtId})||AGENTS[0];
+  var _tx=useState(""),tx=_tx[0],setTx=_tx[1];
+  var pj=PJ.find(function(p){return p.id===pk});
+  
+  var send=function(){if(!tx.trim())return;setTx("");};
+
+  return(
+    <div style={{minHeight:"100vh",background:c.bg,fontFamily:"'Inter',system-ui,-apple-system,sans-serif",color:c.tx}}>
+      <style>{"@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}*{box-sizing:border-box;margin:0;padding:0}input:focus,button:focus{outline:none}::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:"+c.ln+";border-radius:10px}"}</style>
+
+      {/* ── HEADER ── */}
+      <div style={{padding:mob?"8px 12px":"10px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",background:c.cd,borderBottom:"1px solid "+c.ln,position:"sticky",top:0,zIndex:60,gap:8}}>
+        <div style={{display:"flex",alignItems:"center",gap:mob?6:10}}>
+          <BloomieLogo sz={mob?28:32}/>
+          {!mob&&<span style={{fontSize:16,fontWeight:700,color:c.tx}}>Bloomie</span>}
+        </div>
+        <div style={{display:"flex",gap:mob?2:4,background:c.sf,padding:3,borderRadius:10}}>
+          {[{k:"chat",l:mob?"💬":"💬 Chat"},{k:"home",l:mob?"📊":"📊 Status"}].map(function(t){return <button key={t.k} onClick={function(){setPg(t.k)}} style={{padding:mob?"7px 10px":"7px 14px",borderRadius:8,border:"none",cursor:"pointer",fontSize:12,fontWeight:600,background:pg===t.k?c.cd:"transparent",color:pg===t.k?c.tx:c.so}}>{t.l}</button>})}
+        </div>
+        <button onClick={function(){setDark(!dark)}} style={{width:36,height:36,borderRadius:"50%",border:"2px solid "+c.ln,background:c.cd,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,color:c.so}}>{dark?"☀️":"🌙"}</button>
+      </div>
+
+      {/* ── MAIN ── */}
+      <div style={{padding:mob?"16px 12px 40px":"20px 20px 40px",maxWidth:1200,margin:"0 auto"}}>
+        {pg==="chat"&&(
+          <div style={{maxWidth:620,margin:"0 auto",textAlign:"center"}}>
+            <div style={{display:"flex",justifyContent:"center",marginBottom:16}}><Face sz={mob?64:80} agent={curAgent}/></div>
+            <h2 style={{fontSize:mob?22:28,fontWeight:700,color:c.tx,marginBottom:6}}>What can I help you with?</h2>
+            <p style={{fontSize:mob?13:15,color:c.so,marginBottom:28}}>Tell {curAgent.nm.split(" ")[0]} what you need.</p>
+            <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:20}}>
+              <input value={tx} onChange={function(e){setTx(e.target.value)}} onKeyDown={function(e){if(e.key==="Enter")send()}} placeholder="Ask anything..." style={{flex:1,padding:mob?"12px 14px":"14px 18px",borderRadius:14,border:"1.5px solid "+c.ln,fontSize:15,fontFamily:"inherit",background:c.inp,color:c.tx}}/>
+              <button onClick={send} style={{width:44,height:44,borderRadius:12,border:"none",cursor:"pointer",background:"linear-gradient(135deg,#F4A261,#E76F8B)",color:"#fff",fontSize:18,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center"}}>→</button>
+            </div>
+            <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
+              {["Draft a grant","Send email","Research","Build landing page"].map(function(s,i){return <button key={i} onClick={function(){setTx(s)}} style={{padding:"8px 16px",borderRadius:20,border:"1px solid "+c.ln,background:c.cd,cursor:"pointer",fontSize:12,color:c.so}}>{s}</button>})}
+            </div>
+          </div>
+        )}
+
+        {pg==="home"&&(
+          <div>
+            <h1 style={{fontSize:mob?20:24,fontWeight:700,color:c.tx,marginBottom:20}}>Project Status</h1>
+            <div style={{padding:20,borderRadius:16,background:c.cd,border:"1px solid "+c.ln}}>
+              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
+                <Ring pct={pj.at.pct} sz={52} cl={pj.cl}><span style={{fontSize:10,fontWeight:700,color:pj.cl}}>{pj.at.pct}%</span></Ring>
+                <div>
+                  <div style={{fontSize:15,fontWeight:700,color:c.tx}}>{pj.at.nm}</div>
+                  <div style={{fontSize:12,color:c.so}}>{pj.at.tm}</div>
+                </div>
+              </div>
+              <Bar pct={pj.at.pct} cl={pj.cl}/>
+              <div style={{marginTop:20}}>
+                <div style={{fontSize:12,fontWeight:600,color:c.so,marginBottom:10}}>Steps</div>
+                {pj.at.steps.map(function(s,i){return(<div key={i} style={{display:"flex",gap:10,marginBottom:12}}>
+                  <div style={{width:24,height:24,borderRadius:"50%",flexShrink:0,background:s.d?pj.cl:c.sf,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:s.d?"#fff":c.fa,fontWeight:700}}>{s.d?"✓":s.a?"●":i+1}</div>
+                  <div style={{flex:1,paddingTop:2}}>
+                    <div style={{fontSize:13,fontWeight:s.d?400:500,color:s.d?c.so:c.tx,textDecoration:s.d?"line-through":"none"}}>{s.t}</div>
+                    {s.d&&s.tm&&<div style={{fontSize:10,color:c.fa,marginTop:2}}>{s.tm}</div>}
+                    {s.a&&<div style={{fontSize:11,color:pj.cl,fontWeight:600,marginTop:2}}>In progress…</div>}
+                  </div>
+                </div>)})}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

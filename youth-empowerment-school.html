@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Youth Empowerment School</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+
+        nav a:hover {
+            opacity: 0.8;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6rem 2rem;
+            text-align: center;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+
+        .cta-button {
+            background: #ff6b6b;
+            color: white;
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        section {
+            padding: 5rem 0;
+        }
+
+        section h2 {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            color: #667eea;
+        }
+
+        .programs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .program-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border-top: 4px solid #667eea;
+        }
+
+        .program-card:nth-child(2) {
+            border-top-color: #764ba2;
+        }
+
+        .program-card:nth-child(3) {
+            border-top-color: #f093fb;
+        }
+
+        .program-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .program-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .program-card p {
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        #mentorship {
+            background: #f8f9ff;
+        }
+
+        #mentorship h2 {
+            color: #764ba2;
+        }
+
+        .mentorship-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .mentorship-text h3 {
+            font-size: 1.8rem;
+            color: #764ba2;
+            margin-bottom: 1rem;
+        }
+
+        .mentorship-text ul {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .mentorship-text li {
+            padding: 0.8rem 0;
+            padding-left: 2rem;
+            position: relative;
+            color: #555;
+        }
+
+        .mentorship-text li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .mentorship-image {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            padding: 3rem;
+            text-align: center;
+            color: white;
+            font-size: 5rem;
+        }
+
+        #testimonials {
+            background: #fff5f7;
+        }
+
+        #testimonials h2 {
+            color: #ff6b6b;
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .testimonial {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-left: 4px solid #ff6b6b;
+        }
+
+        .testimonial p {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+
+        .testimonial-author {
+            font-weight: bold;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .testimonial-author::before {
+            content: "— ";
+        }
+
+        .rating {
+            color: #ffc107;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        #enrollment {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+
+        #enrollment h2 {
+            color: white;
+        }
+
+        .enrollment-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+
+        footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 0;
+        }
+
+        @media (max-width: 768px) {
+            nav ul {
+                flex-direction: column;
+                gap: 1rem;
+                font-size: 0.9rem;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            section h2 {
+                font-size: 2rem;
+            }
+
+            .mentorship-content {
+                grid-template-columns: 1fr;
+            }
+
+            .mentorship-image {
+                padding: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">🌟 YES</div>
+            <ul>
+                <li><a href="#programs">Programs</a></li>
+                <li><a href="#mentorship">Mentorship</a></li>
+                <li><a href="#testimonials">Testimonials</a></li>
+                <li><a href="#enrollment">Enroll</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Youth Empowerment School</h1>
+            <p>Inspiring young minds. Building stronger communities. Creating futures.</p>
+            <a href="#enrollment" class="cta-button">Join Us Today</a>
+        </div>
+    </section>
+
+    <section id="programs">
+        <div class="container">
+            <h2>Our Programs</h2>
+            <div class="programs-grid">
+                <div class="program-card">
+                    <div class="icon">📚</div>
+                    <h3>After-School Programs</h3>
+                    <p>Engaging activities and academic support to help students succeed. From homework help to creative workshops, we've got it covered.</p>
+                </div>
+                <div class="program-card">
+                    <div class="icon">🚀</div>
+                    <h3>Summer Camps</h3>
+                    <p>Unforgettable summer experiences filled with learning, adventure, and friendship. Build skills while having fun with peers.</p>
+                </div>
+                <div class="program-card">
+                    <div class="icon">🌱</div>
+                    <h3>Mentorship</h3>
+                    <p>One-on-one guidance from passionate mentors who care about your growth. Develop life skills and reach your potential.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="mentorship">
+        <div class="container">
+            <h2>Our Mentorship Program</h2>
+            <div class="mentorship-content">
+                <div class="mentorship-text">
+                    <h3>Personal Growth Through Connection</h3>
+                    <p>Our mentorship program pairs students with experienced mentors who provide guidance, support, and inspiration.</p>
+                    <ul>
+                        <li>One-on-one personalized mentoring</li>
+                        <li>Career exploration and planning</li>
+                        <li>Life skills development</li>
+                        <li>College and education guidance</li>
+                        <li>Regular check-ins and progress tracking</li>
+                        <li>Community service opportunities</li>
+                    </ul>
+                </div>
+                <div class="mentorship-image">
+                    👥
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="testimonials">
+        <div class="container">
+            <h2>What Parents Are Saying</h2>
+            <div class="testimonials-grid">
+                <div class="testimonial">
+                    <div class="rating">⭐⭐⭐⭐⭐</div>
+                    <p>"Youth Empowerment School has been transformational for my son. He's more confident, engaged, and excited about his future. The mentors genuinely care!"</p>
+                    <div class="testimonial-author">Maria Rodriguez</div>
+                </div>
+                <div class="testimonial">
+                    <div class="rating">⭐⭐⭐⭐⭐</div>
+                    <p>"The after-school programs give my daughter a safe, supportive space to learn and grow. I've seen her blossom into a leader. Highly recommend!"</p>
+                    <div class="testimonial-author">James Chen</div>
+                </div>
+                <div class="testimonial">
+                    <div class="rating">⭐⭐⭐⭐⭐</div>
+                    <p>"This school has made such a difference in my child's life. The summer camps were incredible—she made lasting friendships and learned so much."</p>
+                    <div class="testimonial-author">Aisha Johnson</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="enrollment">
+        <div class="container">
+            <div class="enrollment-content">
+                <h2>Ready to Empower Your Youth?</h2>
+                <p>Join hundreds of families who are investing in their children's future.</p>
+                <button class="cta-button" style="background: #ff6b6b;">Start Enrollment</button>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Youth Empowerment School. All rights reserved. | Building futures, one student at a time.</p>
+    </footer>
+</body>
+</html>
