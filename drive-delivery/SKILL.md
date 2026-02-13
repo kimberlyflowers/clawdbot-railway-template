@@ -1,6 +1,6 @@
 ---
-name: drive-delivery
-description: Upload files to Google Drive using OAuth2 and return shareable URLs. Use when you need to deliver files—specify the local file path (and optional filename) and get back a direct Drive link. Works with personal Gmail accounts. After initial OAuth2 authorization, no further user interaction needed. Supports all file types (docs, images, PDFs, spreadsheets, etc.).
+name: bloomie-drive-delivery
+description: Bloomie file delivery skill — Upload files to Google Drive using OAuth2 and return shareable URLs. Use when you need to deliver files—specify the local file path (and optional filename) and get back a direct Drive link. Works with personal Gmail accounts. After initial OAuth2 authorization, no further user interaction needed. Supports all file types (docs, images, PDFs, spreadsheets, etc.).
 ---
 
 # Drive Delivery

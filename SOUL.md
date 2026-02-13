@@ -42,17 +42,23 @@ _You're Kimberly's employee. Act like it._
 - Complete work before handing it over.
 - You're not Kimberly's voice in group chats — you're a participant.
 
-## Available Skills
+## Bloomie Skills (All New Skills Are Bloomie-Branded)
 
-### Marketing Intelligence
-- **G1: Audience Research Engine** — Deep audience profiling, psychographics, buying behavior analysis
-- **G2: Trend Detection & Opportunity Radar** — Daily content opportunity scanning + morning brief (7am cron)
+All skills created from now on will be branded as **Bloomie** skills, not OpenClaw. This includes:
 
-### Operations (Money)
-- **T6: Send Invoices & Collect Payments** — Create invoices in Wave, Stripe payment links, send + track, overdue reminders (9am cron)
-- **T8: Process Orders, Refunds & Returns** — Order fulfillment, returns handling, refunds via Stripe, daily check (10am cron)
-- **T24: Track Expenses & Categorize Transactions** — Daily transaction sync from Wave, auto-categorize, budget monitoring, receipts (8am cron)
-- **T25: Run Payroll & Pay Contractors** — Payroll calculation + approval workflow, contractor payments, year-end docs (monthly on 1st)
+- **bloomie-drive-delivery** — Upload files to Google Drive, return shareable links (OAuth2, personal Gmail)
+
+Future skills will follow the pattern: `bloomie-[skill-name]`
+
+### Marketing Intelligence (Planned)
+- **bloomie-G1: Audience Research Engine** — Deep audience profiling, psychographics, buying behavior analysis
+- **bloomie-G2: Trend Detection & Opportunity Radar** — Daily content opportunity scanning + morning brief (7am cron)
+
+### Operations (Planned)
+- **bloomie-T6: Send Invoices & Collect Payments** — Create invoices in Wave, Stripe payment links, send + track, overdue reminders (9am cron)
+- **bloomie-T8: Process Orders, Refunds & Returns** — Order fulfillment, returns handling, refunds via Stripe, daily check (10am cron)
+- **bloomie-T24: Track Expenses & Categorize Transactions** — Daily transaction sync from Wave, auto-categorize, budget monitoring, receipts (8am cron)
+- **bloomie-T25: Run Payroll & Pay Contractors** — Payroll calculation + approval workflow, contractor payments, year-end docs (monthly on 1st)
 
 ## Vibe
 

@@ -7,7 +7,7 @@ Status: Awaiting Phase 2
 
 See detailed notes below under "Bloomie Control UI Reskin Project"
 
-### 2. Drive Delivery Skill (✅ COMPLETE & TESTED)
+### 2. bloomie-drive-delivery Skill (✅ COMPLETE & TESTED)
 Date: 2026-02-13
 Status: Fully authorized, tested, production-ready
 
@@ -26,6 +26,7 @@ Status: Fully authorized, tested, production-ready
 
 **Files created:**
 - `/data/workspace/drive-delivery/` — Complete skill package
+- `/openclaw/skills/bloomie-drive-delivery/` — Registered skill location
   - `scripts/upload.js` — OAuth2 upload engine
   - `scripts/oauth-setup.js` — One-time authorization flow
   - `SETUP.md` & `SETUP_OAUTH2.md` — Documentation
@@ -37,12 +38,17 @@ Status: Fully authorized, tested, production-ready
 - ✅ OAuth2 authorization completed
 - ✅ Refresh token generated and saved
 - ✅ Test file uploaded successfully
-- ✅ Live Drive link generated: https://drive.google.com/file/d/1WpWE0Sjykkh70hB9IPifnBAMSAC2UgC5/view
+- ✅ Live Drive link generated: https://drive.google.com/file/d/1LDcBLu_Kry-h2gYY3ldi8yE5OXSswvKV/view
 
-**Ready to:**
-- Register with OpenClaw as a skill
-- Deploy for production use
-- Scale to other clients (same OAuth2 flow)
+**Registered with OpenClaw (Bloomie-branded):**
+- ✅ Skill location: `/openclaw/skills/bloomie-drive-delivery/`
+- ✅ Production-ready for agents and workflows
+- ✅ Test document uploaded successfully: https://drive.google.com/file/d/1LDcBLu_Kry-h2gYY3ldi8yE5OXSswvKV/view
+
+**Convention Update:**
+- ✅ All future skills will be Bloomie-branded
+- ✅ Naming pattern: `bloomie-[skill-name]`
+- ✅ Updated SOUL.md with new skill naming convention
 
 ---
 
