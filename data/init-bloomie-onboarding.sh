@@ -10,10 +10,17 @@ WORKSPACE_DIR="/data/workspace"
 CONFIG_FILE="$STATE_DIR/openclaw.json"
 INIT_LOCK="$STATE_DIR/.bloomie-initialized"
 
+echo "[INIT] Bloomie Onboarding Automation Starting"
+echo "[INIT] STATE_DIR=$STATE_DIR"
+echo "[INIT] CONFIG_FILE=$CONFIG_FILE"
+echo "[INIT] INIT_LOCK=$INIT_LOCK"
+
 if [ -f "$INIT_LOCK" ]; then
+    echo "[INIT] Init lock exists at $INIT_LOCK. Skipping initialization."
     exit 0
 fi
 
+echo "[INIT] No lock found. Proceeding with initialization."
 echo "🌸 Bloomie Onboarding Automation"
 echo ""
 
