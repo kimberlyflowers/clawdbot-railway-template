@@ -26,6 +26,19 @@ const GATEWAY_TARGET = 'http://127.0.0.1:8000';
 
 let gatewayProcess = null;
 
+// UUID v4 generator for older Node.js versions
+const generateUUID = () => {
+  if (crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback for older Node.js versions
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
+
 // Middleware
 app.use(express.json({ limit: '1mb' }));
 
@@ -86,19 +99,29 @@ const ensureGatewayRunning = async () => {
   });
 };
 
-// Desktop WebSocket endpoint
+// Desktop WebSocket endpoint with proper error handling
 server.on('upgrade', (request, socket, head) => {
-  const { pathname } = new URL(request.url, 'http://localhost');
+  try {
+    const { pathname } = new URL(request.url, 'http://localhost');
 
-  if (pathname === '/desktop') {
-    wss.handleUpgrade(request, socket, head, (ws) => {
-      handleDesktopConnection(ws, request);
-    });
-  } else {
-    // Proxy other WebSocket connections to gateway
-    ensureGatewayRunning().then(() => {
-      proxy.ws(request, socket, head, { target: GATEWAY_TARGET });
-    });
+    if (pathname === '/desktop') {
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        handleDesktopConnection(ws, request);
+      });
+    } else {
+      // Proxy other WebSocket connections to gateway with error handling
+      ensureGatewayRunning()
+        .then(() => {
+          proxy.ws(request, socket, head, { target: GATEWAY_TARGET });
+        })
+        .catch((error) => {
+          console.error('Failed to ensure gateway running for WebSocket:', error);
+          socket.destroy();
+        });
+    }
+  } catch (error) {
+    console.error('WebSocket upgrade error:', error);
+    socket.destroy();
   }
 });
 
@@ -109,7 +132,7 @@ const handleDesktopConnection = (ws, request) => {
   let isAuthenticated = false;
   let customerToken = null;
   let agentName = 'Jaden'; // Default agent name
-  let sessionId = crypto.randomUUID();
+  let sessionId = generateUUID(); // Use compatible UUID function
 
   // Store connection
   desktopConnections.set(sessionId, {
@@ -167,7 +190,9 @@ const handleDesktopConnection = (ws, request) => {
       }
     } catch (error) {
       console.error('Error handling desktop message:', error);
-      ws.send(JSON.stringify({ type: 'error', error: error.message }));
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'error', error: error.message }));
+      }
     }
   });
 
@@ -198,10 +223,12 @@ const handleAuth = async (ws, message, sessionId) => {
   // TODO: Validate token against customer database
   // For now, accept any token that looks valid
   if (!token || token.length < 10) {
-    ws.send(JSON.stringify({
-      type: 'auth_failed',
-      reason: 'Invalid token'
-    }));
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: 'auth_failed',
+        reason: 'Invalid token'
+      }));
+    }
     return;
   }
 
@@ -211,11 +238,13 @@ const handleAuth = async (ws, message, sessionId) => {
     connection.customerToken = token;
   }
 
-  ws.send(JSON.stringify({
-    type: 'auth_success',
-    agentName: 'Jaden',
-    permissions: ['desktop_control']
-  }));
+  if (ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({
+      type: 'auth_success',
+      agentName: 'Jaden',
+      permissions: ['desktop_control']
+    }));
+  }
 
   console.log(`Desktop client authenticated with token: ${token.substring(0, 10)}...`);
 };
@@ -228,11 +257,13 @@ const handlePermissionGranted = async (ws, message, sessionId) => {
   }
 
   // Start session
-  ws.send(JSON.stringify({
-    type: 'session_start',
-    sessionId,
-    task: 'Desktop control session started'
-  }));
+  if (ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({
+      type: 'session_start',
+      sessionId,
+      task: 'Desktop control session started'
+    }));
+  }
 
   console.log(`Permission granted for session ${sessionId}, watchLive: ${message.watchLive}`);
 };
@@ -269,11 +300,13 @@ const requestScreenPermission = (sessionId, reason) => {
     throw new Error('Desktop not connected or authenticated');
   }
 
-  connection.ws.send(JSON.stringify({
-    type: 'permission_request',
-    reason,
-    sessionId
-  }));
+  if (connection.ws.readyState === WebSocket.OPEN) {
+    connection.ws.send(JSON.stringify({
+      type: 'permission_request',
+      reason,
+      sessionId
+    }));
+  }
 };
 
 // Send command to desktop
@@ -283,13 +316,15 @@ const sendDesktopCommand = (sessionId, action, data) => {
     throw new Error('Desktop not ready or permission not granted');
   }
 
-  const commandId = crypto.randomUUID();
-  connection.ws.send(JSON.stringify({
-    type: 'command',
-    action,
-    data,
-    commandId
-  }));
+  const commandId = generateUUID();
+  if (connection.ws.readyState === WebSocket.OPEN) {
+    connection.ws.send(JSON.stringify({
+      type: 'command',
+      action,
+      data,
+      commandId
+    }));
+  }
 
   return commandId;
 };
@@ -332,10 +367,15 @@ app.get('/setup/export', requireSetupAuth, (req, res) => {
     .pipe(res);
 });
 
-// Proxy all other requests to gateway
+// Proxy all other requests to gateway with error handling
 app.use('*', async (req, res) => {
-  await ensureGatewayRunning();
-  proxy.web(req, res, { target: GATEWAY_TARGET });
+  try {
+    await ensureGatewayRunning();
+    proxy.web(req, res, { target: GATEWAY_TARGET });
+  } catch (error) {
+    console.error('Failed to ensure gateway running:', error);
+    res.status(500).json({ error: 'Gateway not available' });
+  }
 });
 
 // Initialize and start server
