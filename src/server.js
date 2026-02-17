@@ -30,7 +30,7 @@ const desktopConnections = new Map();
 const PORT = process.env.OPENCLAW_PUBLIC_PORT || process.env.PORT || 8080;
 const OPENCLAW_NODE = process.env.OPENCLAW_NODE || 'node';
 const OPENCLAW_ENTRY = process.env.OPENCLAW_ENTRY || '/openclaw/dist/entry.js';
-const GATEWAY_TARGET = 'http://127.0.0.1:8000';
+const GATEWAY_TARGET = 'http://127.0.0.1:18789';
 
 let gatewayProcess = null;
 
