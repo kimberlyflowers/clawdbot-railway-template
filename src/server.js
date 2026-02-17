@@ -367,6 +367,26 @@ app.get('/setup/export', requireSetupAuth, (req, res) => {
     .pipe(res);
 });
 
+// Health check endpoint - responds immediately without waiting for gateway
+app.get('/setup/healthz', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    server: 'openclaw-wrapper',
+    desktop_endpoint: '/desktop'
+  });
+});
+
+// Health check at root level too (Railway might check different paths)
+app.get('/healthz', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    server: 'openclaw-wrapper',
+    desktop_endpoint: '/desktop'
+  });
+});
+
 // Proxy all other requests to gateway with error handling
 app.use('*', async (req, res) => {
   try {
