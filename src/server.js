@@ -7,6 +7,7 @@ import path from "node:path";
 import express from "express";
 import httpProxy from "http-proxy";
 import * as tar from "tar";
+import { WebSocket, WebSocketServer } from "ws";
 
 /** @type {Set<string>} */
 const warnedDeprecatedEnv = new Set();
@@ -276,6 +277,223 @@ function requireSetupAuth(req, res, next) {
   }
   return next();
 }
+
+// Desktop WebSocket server and connections storage
+const desktopWss = new WebSocketServer({ noServer: true });
+const desktopConnections = new Map();
+
+// UUID v4 generator for compatibility
+const generateUUID = () => {
+  if (crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback for older Node.js versions
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
+
+// Handle desktop WebSocket connections
+const handleDesktopConnection = (ws, request) => {
+  console.log('Desktop client connected');
+
+  let isAuthenticated = false;
+  let customerToken = null;
+  let sessionId = generateUUID();
+
+  // Store connection
+  desktopConnections.set(sessionId, {
+    ws,
+    isAuthenticated,
+    customerToken,
+    lastFrame: null,
+    hasPermission: false
+  });
+
+  ws.on('message', async (data) => {
+    try {
+      let message;
+
+      // Check if it's binary data (screen frame)
+      if (data instanceof Buffer && data.length > 1000) {
+        // Handle screen frame
+        const connection = desktopConnections.get(sessionId);
+        if (connection && connection.isAuthenticated) {
+          connection.lastFrame = data;
+          console.log(`Received screen frame: ${data.length} bytes`);
+          // TODO: Process frame with Claude Vision if needed
+        }
+        return;
+      }
+
+      // Parse JSON message
+      message = JSON.parse(data.toString());
+      console.log('Desktop message:', message.type);
+
+      switch (message.type) {
+        case 'auth':
+          await handleAuth(ws, message, sessionId);
+          break;
+        case 'permission_granted':
+          await handlePermissionGranted(ws, message, sessionId);
+          break;
+        case 'permission_denied':
+          await handlePermissionDenied(ws, message, sessionId);
+          break;
+        case 'permission_revoked':
+          await handlePermissionRevoked(ws, message, sessionId);
+          break;
+        case 'heartbeat_response':
+          // Keep connection alive
+          break;
+        default:
+          console.log('Unknown desktop message type:', message.type);
+      }
+    } catch (error) {
+      console.error('Error handling desktop message:', error);
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'error', error: error.message }));
+      }
+    }
+  });
+
+  ws.on('close', () => {
+    console.log('Desktop client disconnected');
+    desktopConnections.delete(sessionId);
+  });
+
+  ws.on('error', (error) => {
+    console.error('Desktop WebSocket error:', error);
+    desktopConnections.delete(sessionId);
+  });
+
+  // Send heartbeat every 30 seconds
+  const heartbeat = setInterval(() => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'heartbeat' }));
+    } else {
+      clearInterval(heartbeat);
+    }
+  }, 30000);
+};
+
+// Authentication handler
+const handleAuth = async (ws, message, sessionId) => {
+  const { token, clientType, platform, version } = message;
+
+  // TODO: Validate token against customer database
+  // For now, accept any token that looks valid
+  if (!token || token.length < 10) {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: 'auth_failed',
+        reason: 'Invalid token'
+      }));
+    }
+    return;
+  }
+
+  const connection = desktopConnections.get(sessionId);
+  if (connection) {
+    connection.isAuthenticated = true;
+    connection.customerToken = token;
+  }
+
+  if (ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({
+      type: 'auth_success',
+      agentName: 'Jaden',
+      permissions: ['desktop_control']
+    }));
+  }
+
+  console.log(`Desktop client authenticated with token: ${token.substring(0, 10)}...`);
+};
+
+// Permission handlers
+const handlePermissionGranted = async (ws, message, sessionId) => {
+  const connection = desktopConnections.get(sessionId);
+  if (connection) {
+    connection.hasPermission = true;
+  }
+
+  // Start session
+  if (ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({
+      type: 'session_start',
+      sessionId,
+      task: 'Desktop control session started'
+    }));
+  }
+
+  console.log(`Permission granted for session ${sessionId}, watchLive: ${message.watchLive}`);
+};
+
+const handlePermissionDenied = async (ws, message, sessionId) => {
+  console.log(`Permission denied for session ${sessionId}`);
+};
+
+const handlePermissionRevoked = async (ws, message, sessionId) => {
+  const connection = desktopConnections.get(sessionId);
+  if (connection) {
+    connection.hasPermission = false;
+  }
+
+  console.log(`Permission revoked for session ${sessionId}: ${message.reason}`);
+};
+
+// Desktop API Functions for skills to use
+const requestScreenPermission = (sessionId, reason) => {
+  const connection = desktopConnections.get(sessionId);
+  if (!connection || !connection.isAuthenticated) {
+    throw new Error('Desktop not connected or authenticated');
+  }
+
+  if (connection.ws.readyState === WebSocket.OPEN) {
+    connection.ws.send(JSON.stringify({
+      type: 'permission_request',
+      reason,
+      sessionId
+    }));
+  }
+};
+
+const sendDesktopCommand = (sessionId, action, data) => {
+  const connection = desktopConnections.get(sessionId);
+  if (!connection || !connection.isAuthenticated || !connection.hasPermission) {
+    throw new Error('Desktop not ready or permission not granted');
+  }
+
+  const commandId = generateUUID();
+  if (connection.ws.readyState === WebSocket.OPEN) {
+    connection.ws.send(JSON.stringify({
+      type: 'command',
+      action,
+      data,
+      commandId
+    }));
+  }
+
+  return commandId;
+};
+
+const getDesktopSessions = () => {
+  return Array.from(desktopConnections.entries()).map(([sessionId, connection]) => ({
+    sessionId,
+    isAuthenticated: connection.isAuthenticated,
+    hasPermission: connection.hasPermission,
+    hasRecentFrame: !!connection.lastFrame
+  }));
+};
+
+// Export functions for skills
+global.desktopAPI = {
+  requestScreenPermission,
+  sendDesktopCommand,
+  getDesktopSessions
+};
 
 const app = express();
 app.disable("x-powered-by");
@@ -1025,17 +1243,35 @@ const server = app.listen(PORT, "0.0.0.0", () => {
 });
 
 server.on("upgrade", async (req, socket, head) => {
-  if (!isConfigured()) {
-    socket.destroy();
-    return;
-  }
   try {
-    await ensureGatewayRunning();
-  } catch {
+    const url = new URL(req.url, `http://${req.headers.host}`);
+
+    if (url.pathname === '/desktop') {
+      // Handle desktop WebSocket connections
+      desktopWss.handleUpgrade(req, socket, head, (ws) => {
+        handleDesktopConnection(ws, req);
+      });
+      return;
+    }
+
+    // All other WebSocket connections go to the gateway
+    if (!isConfigured()) {
+      socket.destroy();
+      return;
+    }
+
+    try {
+      await ensureGatewayRunning();
+    } catch {
+      socket.destroy();
+      return;
+    }
+
+    proxy.ws(req, socket, head, { target: GATEWAY_TARGET });
+  } catch (error) {
+    console.error('WebSocket upgrade error:', error);
     socket.destroy();
-    return;
   }
-  proxy.ws(req, socket, head, { target: GATEWAY_TARGET });
 });
 
 process.on("SIGTERM", () => {
