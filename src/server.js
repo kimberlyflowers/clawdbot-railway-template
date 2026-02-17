@@ -346,6 +346,51 @@ global.desktopAPI = {
   getDesktopSessions
 };
 
+// Health check endpoints FIRST - before any auth or gateway requirements
+app.get('/health', (req, res) => {
+  console.log('Healthcheck hit:', req.path);
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    server: 'openclaw-wrapper',
+    desktop_endpoint: '/desktop'
+  });
+});
+
+app.get('/healthz', (req, res) => {
+  console.log('Healthcheck hit:', req.path);
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    server: 'openclaw-wrapper',
+    desktop_endpoint: '/desktop'
+  });
+});
+
+app.get('/setup/healthz', (req, res) => {
+  console.log('Healthcheck hit:', req.path);
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    server: 'openclaw-wrapper',
+    desktop_endpoint: '/desktop'
+  });
+});
+
+// Root path handler for basic checks
+app.get('/', (req, res) => {
+  console.log('Root path hit');
+  res.status(200).json({
+    status: 'ok',
+    message: 'OpenClaw Railway Wrapper',
+    endpoints: {
+      setup: '/setup/',
+      desktop: '/desktop',
+      health: '/healthz'
+    }
+  });
+});
+
 // Setup routes (existing routes...)
 app.get('/setup/', requireSetupAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'setup-app.html'));
@@ -365,26 +410,6 @@ app.get('/setup/export', requireSetupAuth, (req, res) => {
   res.attachment('openclaw-backup.tar.gz');
   tar.c({ gzip: true, C: dataDir }, ['.'])
     .pipe(res);
-});
-
-// Health check endpoint - responds immediately without waiting for gateway
-app.get('/setup/healthz', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    server: 'openclaw-wrapper',
-    desktop_endpoint: '/desktop'
-  });
-});
-
-// Health check at root level too (Railway might check different paths)
-app.get('/healthz', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    server: 'openclaw-wrapper',
-    desktop_endpoint: '/desktop'
-  });
 });
 
 // Proxy all other requests to gateway with error handling
