@@ -13,6 +13,14 @@ const app = express();
 const server = http.createServer(app);
 const proxy = httpProxy.createProxyServer({ ws: true });
 
+// CRITICAL: Handle proxy errors to prevent server crashes
+proxy.on('error', (err, req, res) => {
+  console.error('Proxy error:', err.message);
+  if (res && !res.headersSent) {
+    res.status(502).json({ error: 'Gateway not ready' });
+  }
+});
+
 // Desktop WebSocket server
 const wss = new WebSocket.Server({ noServer: true });
 
