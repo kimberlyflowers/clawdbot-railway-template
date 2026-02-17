@@ -413,7 +413,7 @@ app.get('/setup/export', requireSetupAuth, (req, res) => {
 });
 
 // Proxy all other requests to gateway with error handling
-app.use('*', async (req, res) => {
+app.use(async (req, res) => {
   try {
     await ensureGatewayRunning();
     proxy.web(req, res, { target: GATEWAY_TARGET });
