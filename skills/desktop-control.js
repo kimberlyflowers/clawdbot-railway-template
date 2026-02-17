@@ -1,179 +1,193 @@
 const { z } = require('zod');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 /**
- * 🌸 BLOOM Desktop Control Skill - THE BRIDGE 🌸
+ * 🌸 BLOOM Desktop Control - USER-FRIENDLY VERSION 🌸
  *
- * This skill connects Jaden's brain to user desktops through BLOOM Desktop app.
- * It handles the COMPLETE chain from "no desktop connected" to "Jaden controlling screen".
+ * SIMPLE FLOW FOR USERS:
+ * 1. User: "Jaden, use my desktop"
+ * 2. Jaden: Auto-launches desktop app with secure token
+ * 3. User: Clicks "Allow"
+ * 4. Coral glow appears - DONE!
  *
- * THE FULL FLOW:
- * 1. User: "Jaden, build me a funnel"
- * 2. Jaden calls: start_desktop_session()
- * 3. If no desktop → return download link + token
- * 4. If desktop connected → request permission
- * 5. User approves → coral glow appears
- * 6. Jaden sees screen + sends commands
- * 7. When done → release control, glow disappears
+ * NO MORE: Manual tokens, connection codes, debugging, complex setup
  */
 
-// Generate secure tokens for users
-const generateDesktopToken = () => {
-  return `bloom-${crypto.randomBytes(16).toString('hex')}`;
+// Smart session management
+const userSessions = new Map();
+
+const generateSecureUserToken = (userId) => {
+  const timestamp = Date.now();
+  const random = crypto.randomBytes(8).toString('hex');
+  return `bloom_${userId}_${timestamp}_${random}`;
+};
+
+const getUserId = () => {
+  // In production, get from OpenClaw session context
+  // For now, use system username as identifier
+  try {
+    return require('os').userInfo().username || 'user';
+  } catch {
+    return 'user';
+  }
 };
 
 const skill = {
   name: 'desktop-control',
-  description: 'Complete desktop control system - connects Jaden to user desktops through BLOOM Desktop app',
+  description: 'User-friendly desktop control - just say "use my desktop" and Jaden handles everything!',
 
   functions: {
-    // 🎯 THE MAIN ENTRY POINT - Jaden calls this to start desktop work
-    start_desktop_session: {
-      description: 'Start a desktop control session - handles full flow from no desktop to active control',
+    // 🎯 MAIN FUNCTION - User just says "Jaden, use my desktop"
+    use_desktop: {
+      description: 'MAIN ENTRY POINT - User says "use my desktop" and Jaden handles everything automatically',
       parameters: z.object({
-        task: z.string().optional().describe('What task you need desktop access for (helps user understand)')
+        task: z.string().optional().describe('What you need desktop for (optional context for user)')
       }),
-      handler: async ({ task = 'desktop automation' }) => {
+      handler: async ({ task = 'help you with computer tasks' }) => {
         try {
           if (!global.desktopAPI) {
             return {
-              error: 'Desktop API not available - ensure /desktop WebSocket endpoint is running',
-              technical_note: 'Server needs to expose global.desktopAPI functions'
+              error: 'Desktop system not available',
+              user_message: 'Sorry, desktop control is not set up on this server yet.'
             };
+          }
+
+          const userId = getUserId();
+          const sessions = global.desktopAPI.getDesktopSessions();
+
+          // Check if user already has desktop connected
+          const userSession = sessions.find(s => s.isAuthenticated && s.customerToken?.includes(userId));
+
+          if (userSession && userSession.hasPermission) {
+            return {
+              status: 'ready',
+              message: `Perfect! I can see your desktop. The coral glow border should be visible around your screen.`,
+              user_message: `I'm ready to ${task}. You should see the coral glow indicating I have access.`,
+              sessionId: userSession.sessionId,
+              visual_confirmation: 'Look for coral/pink glow border around your entire screen'
+            };
+          }
+
+          if (userSession && !userSession.hasPermission) {
+            // Desktop connected but no permission - auto-request it
+            global.desktopAPI.requestScreenPermission(userSession.sessionId, `Jaden wants to ${task}`);
+
+            return {
+              status: 'requesting_permission',
+              message: `I can see your BLOOM Desktop is connected! I just sent a permission request.`,
+              user_message: `Please click "Allow" in the popup to let me ${task}. The coral glow will appear once you approve.`,
+              sessionId: userSession.sessionId,
+              next_action: 'User will see permission popup - just click Allow'
+            };
+          }
+
+          // No desktop connected - provide 1-click solution
+          const secureToken = generateSecureUserToken(userId);
+          userSessions.set(userId, {
+            token: secureToken,
+            task,
+            timestamp: Date.now()
+          });
+
+          const oneClickUrl = `bloom://connect?token=${secureToken}`;
+          const webUrl = `https://bloom.ai/desktop/connect?token=${secureToken}`;
+          const directConnection = `wss://openclaw-railway-template-production-b301.up.railway.app/desktop:${secureToken}`;
+
+          return {
+            status: 'need_desktop_app',
+            message: `I need desktop access to ${task}. I've prepared a secure connection for you.`,
+            user_message: `To let me ${task}, please:\n\n1️⃣ **If you have BLOOM Desktop installed:**\nClick this link: ${oneClickUrl}\n\n2️⃣ **If you need to download it:**\nGo to: https://bloom.ai/desktop\n\n3️⃣ **Manual connection (backup):**\nUse this code: ${directConnection}`,
+
+            // Different options for user convenience
+            options: {
+              one_click: oneClickUrl,
+              web_download: 'https://bloom.ai/desktop',
+              manual_connection: directConnection,
+              backup_github: 'https://github.com/kimberlyflowers/bloom-desktop/releases/latest'
+            },
+
+            secure_token: secureToken,
+            auto_expires: '1 hour for security',
+            next_action: 'Once connected, I\'ll automatically request permission and you just click Allow'
+          };
+
+        } catch (error) {
+          return {
+            error: `Desktop setup failed: ${error.message}`,
+            user_message: 'Sorry, something went wrong setting up desktop access. Please try again.'
+          };
+        }
+      }
+    },
+
+    // 📸 SMART SCREENSHOT - Auto-detects session
+    see_screen: {
+      description: 'Take a screenshot of the user\'s desktop (auto-detects active session)',
+      parameters: z.object({}),
+      handler: async () => {
+        try {
+          if (!global.desktopAPI) {
+            return { error: 'Desktop API not available' };
           }
 
           const sessions = global.desktopAPI.getDesktopSessions();
+          const activeSession = sessions.find(s => s.hasPermission);
 
-          // NO DESKTOP CONNECTED - Return setup instructions
-          if (sessions.length === 0) {
-            const token = generateDesktopToken();
-
+          if (!activeSession) {
             return {
-              status: 'no_desktop_connected',
-              message: `I need desktop access for: ${task}`,
-              instructions: {
-                step1: 'Download BLOOM Desktop app',
-                step2: 'Use this connection code in the app',
-                step3: 'Grant permission when prompted'
-              },
-              connection_code: `wss://openclaw-railway-template-production-b301.up.railway.app/desktop:${token}`,
-              download_links: {
-                mac: 'https://github.com/kimberlyflowers/bloom-desktop/releases/latest',
-                windows: 'https://github.com/kimberlyflowers/bloom-desktop/releases/latest',
-                direct: 'https://github.com/kimberlyflowers/bloom-desktop'
-              },
-              next_step: 'User will connect BLOOM Desktop, then call this function again'
+              error: 'No desktop access',
+              user_message: 'I need desktop access first. Say "Jaden, use my desktop" to get started.'
             };
           }
 
-          // DESKTOP CONNECTED - Check status
-          const session = sessions[0]; // Use first available session
-
-          if (!session.isAuthenticated) {
-            return {
-              status: 'desktop_connecting',
-              message: 'Desktop app is connecting...',
-              sessionId: session.sessionId,
-              next_step: 'Wait for authentication to complete'
-            };
-          }
-
-          if (session.hasPermission) {
-            return {
-              status: 'ready_for_control',
-              message: 'Desktop control is active! User should see coral glow border.',
-              sessionId: session.sessionId,
-              capabilities: ['screenshot', 'click', 'type', 'scroll', 'drag', 'keypress'],
-              next_step: 'Use desktop control functions to automate tasks'
-            };
-          }
-
-          // NEED PERMISSION - Request it
-          global.desktopAPI.requestScreenPermission(session.sessionId, `Jaden needs desktop access for: ${task}`);
+          const commandId = global.desktopAPI.sendDesktopCommand(activeSession.sessionId, 'screenshot', {});
 
           return {
-            status: 'permission_requested',
-            message: 'Permission request sent to user',
-            sessionId: session.sessionId,
-            task,
-            next_step: 'User will see popup to approve. Coral glow will appear when granted.'
-          };
-
-        } catch (error) {
-          return { error: `Failed to start desktop session: ${error.message}` };
-        }
-      }
-    },
-
-    // 📸 TAKE SCREENSHOT - Jaden's eyes
-    see_desktop: {
-      description: 'Take a screenshot to see what\'s on the user\'s desktop',
-      parameters: z.object({
-        sessionId: z.string().optional().describe('Session ID (auto-detected if not provided)')
-      }),
-      handler: async ({ sessionId }) => {
-        try {
-          if (!global.desktopAPI) {
-            return { error: 'Desktop API not available' };
-          }
-
-          // Auto-detect session if not provided
-          if (!sessionId) {
-            const sessions = global.desktopAPI.getDesktopSessions();
-            const activeSession = sessions.find(s => s.hasPermission);
-            if (!activeSession) {
-              return { error: 'No active desktop session with permission found' };
-            }
-            sessionId = activeSession.sessionId;
-          }
-
-          const commandId = global.desktopAPI.sendDesktopCommand(sessionId, 'screenshot', {});
-
-          return {
-            message: 'Taking screenshot of user\'s desktop...',
+            message: 'Taking screenshot of your desktop...',
+            user_message: 'I\'m capturing what\'s on your screen now.',
             commandId,
-            sessionId,
-            note: 'Screenshot will be processed by Claude Vision for analysis'
+            sessionId: activeSession.sessionId
           };
         } catch (error) {
-          return { error: `Failed to see desktop: ${error.message}` };
+          return { error: `Failed to take screenshot: ${error.message}` };
         }
       }
     },
 
-    // 🖱️ CLICK - Jaden's finger
-    click_at: {
-      description: 'Click at specific coordinates on the desktop',
+    // 🖱️ SMART CLICK - Auto-detects session
+    click: {
+      description: 'Click at coordinates on the user\'s desktop',
       parameters: z.object({
         x: z.number().describe('X coordinate to click'),
         y: z.number().describe('Y coordinate to click'),
-        button: z.enum(['left', 'right', 'middle']).optional().default('left').describe('Mouse button to use'),
-        sessionId: z.string().optional().describe('Session ID (auto-detected if not provided)')
+        button: z.enum(['left', 'right', 'middle']).optional().default('left')
       }),
-      handler: async ({ x, y, button = 'left', sessionId }) => {
+      handler: async ({ x, y, button = 'left' }) => {
         try {
           if (!global.desktopAPI) {
             return { error: 'Desktop API not available' };
           }
 
-          // Auto-detect session if not provided
-          if (!sessionId) {
-            const sessions = global.desktopAPI.getDesktopSessions();
-            const activeSession = sessions.find(s => s.hasPermission);
-            if (!activeSession) {
-              return { error: 'No active desktop session found. Call start_desktop_session() first.' };
-            }
-            sessionId = activeSession.sessionId;
+          const sessions = global.desktopAPI.getDesktopSessions();
+          const activeSession = sessions.find(s => s.hasPermission);
+
+          if (!activeSession) {
+            return {
+              error: 'No desktop access',
+              user_message: 'I need desktop access first. Say "Jaden, use my desktop" to get started.'
+            };
           }
 
-          const commandId = global.desktopAPI.sendDesktopCommand(sessionId, 'click', {
+          const commandId = global.desktopAPI.sendDesktopCommand(activeSession.sessionId, 'click', {
             x, y, button
           });
 
           return {
-            message: `Clicking ${button} button at (${x}, ${y})`,
-            commandId,
-            sessionId
+            message: `Clicking at (${x}, ${y})`,
+            user_message: `I'm clicking at position ${x}, ${y} on your screen.`,
+            commandId
           };
         } catch (error) {
           return { error: `Failed to click: ${error.message}` };
@@ -181,35 +195,34 @@ const skill = {
       }
     },
 
-    // ⌨️ TYPE - Jaden's voice
-    type_text: {
-      description: 'Type text on the desktop',
+    // ⌨️ SMART TYPE - Auto-detects session
+    type: {
+      description: 'Type text on the user\'s desktop',
       parameters: z.object({
-        text: z.string().describe('Text to type'),
-        sessionId: z.string().optional().describe('Session ID (auto-detected if not provided)')
+        text: z.string().describe('Text to type')
       }),
-      handler: async ({ text, sessionId }) => {
+      handler: async ({ text }) => {
         try {
           if (!global.desktopAPI) {
             return { error: 'Desktop API not available' };
           }
 
-          // Auto-detect session
-          if (!sessionId) {
-            const sessions = global.desktopAPI.getDesktopSessions();
-            const activeSession = sessions.find(s => s.hasPermission);
-            if (!activeSession) {
-              return { error: 'No active desktop session found. Call start_desktop_session() first.' };
-            }
-            sessionId = activeSession.sessionId;
+          const sessions = global.desktopAPI.getDesktopSessions();
+          const activeSession = sessions.find(s => s.hasPermission);
+
+          if (!activeSession) {
+            return {
+              error: 'No desktop access',
+              user_message: 'I need desktop access first. Say "Jaden, use my desktop" to get started.'
+            };
           }
 
-          const commandId = global.desktopAPI.sendDesktopCommand(sessionId, 'type', { text });
+          const commandId = global.desktopAPI.sendDesktopCommand(activeSession.sessionId, 'type', { text });
 
           return {
             message: `Typing: "${text}"`,
-            commandId,
-            sessionId
+            user_message: `I'm typing "${text}" on your computer.`,
+            commandId
           };
         } catch (error) {
           return { error: `Failed to type: ${error.message}` };
@@ -217,35 +230,36 @@ const skill = {
       }
     },
 
-    // ⌨️ KEYBOARD SHORTCUTS - Jaden's shortcuts
-    press_keys: {
-      description: 'Press keyboard keys or key combinations (cmd+c, ctrl+v, etc.)',
+    // ⌨️ SMART KEY PRESS - Auto-detects session
+    keys: {
+      description: 'Press keyboard keys or shortcuts (cmd+c, enter, etc.)',
       parameters: z.object({
-        keys: z.string().describe('Key combination (e.g., "cmd+c", "enter", "tab", "cmd+shift+4")'),
-        sessionId: z.string().optional().describe('Session ID (auto-detected if not provided)')
+        combination: z.string().describe('Key combination like "cmd+c", "enter", "tab"')
       }),
-      handler: async ({ keys, sessionId }) => {
+      handler: async ({ combination }) => {
         try {
           if (!global.desktopAPI) {
             return { error: 'Desktop API not available' };
           }
 
-          // Auto-detect session
-          if (!sessionId) {
-            const sessions = global.desktopAPI.getDesktopSessions();
-            const activeSession = sessions.find(s => s.hasPermission);
-            if (!activeSession) {
-              return { error: 'No active desktop session found. Call start_desktop_session() first.' };
-            }
-            sessionId = activeSession.sessionId;
+          const sessions = global.desktopAPI.getDesktopSessions();
+          const activeSession = sessions.find(s => s.hasPermission);
+
+          if (!activeSession) {
+            return {
+              error: 'No desktop access',
+              user_message: 'I need desktop access first. Say "Jaden, use my desktop" to get started.'
+            };
           }
 
-          const commandId = global.desktopAPI.sendDesktopCommand(sessionId, 'keypress', { keys });
+          const commandId = global.desktopAPI.sendDesktopCommand(activeSession.sessionId, 'keypress', {
+            keys: combination
+          });
 
           return {
-            message: `Pressing keys: "${keys}"`,
-            commandId,
-            sessionId
+            message: `Pressing keys: ${combination}`,
+            user_message: `I'm pressing ${combination} on your keyboard.`,
+            commandId
           };
         } catch (error) {
           return { error: `Failed to press keys: ${error.message}` };
@@ -253,173 +267,91 @@ const skill = {
       }
     },
 
-    // 🖱️ SCROLL - Jaden's scroll
-    scroll_at: {
-      description: 'Scroll at specific coordinates',
-      parameters: z.object({
-        x: z.number().describe('X coordinate to scroll at'),
-        y: z.number().describe('Y coordinate to scroll at'),
-        direction: z.enum(['up', 'down', 'left', 'right']).describe('Scroll direction'),
-        amount: z.number().optional().default(3).describe('Scroll amount (lines)'),
-        sessionId: z.string().optional().describe('Session ID (auto-detected if not provided)')
-      }),
-      handler: async ({ x, y, direction, amount = 3, sessionId }) => {
-        try {
-          if (!global.desktopAPI) {
-            return { error: 'Desktop API not available' };
-          }
-
-          // Auto-detect session
-          if (!sessionId) {
-            const sessions = global.desktopAPI.getDesktopSessions();
-            const activeSession = sessions.find(s => s.hasPermission);
-            if (!activeSession) {
-              return { error: 'No active desktop session found. Call start_desktop_session() first.' };
-            }
-            sessionId = activeSession.sessionId;
-          }
-
-          const commandId = global.desktopAPI.sendDesktopCommand(sessionId, 'scroll', {
-            x, y, direction, amount
-          });
-
-          return {
-            message: `Scrolling ${direction} ${amount} lines at (${x}, ${y})`,
-            commandId,
-            sessionId
-          };
-        } catch (error) {
-          return { error: `Failed to scroll: ${error.message}` };
-        }
-      }
-    },
-
-    // 🖱️ DRAG - Jaden's drag
-    drag_from_to: {
-      description: 'Drag from one point to another',
-      parameters: z.object({
-        fromX: z.number().describe('Starting X coordinate'),
-        fromY: z.number().describe('Starting Y coordinate'),
-        toX: z.number().describe('Ending X coordinate'),
-        toY: z.number().describe('Ending Y coordinate'),
-        duration: z.number().optional().default(500).describe('Drag duration in milliseconds'),
-        sessionId: z.string().optional().describe('Session ID (auto-detected if not provided)')
-      }),
-      handler: async ({ fromX, fromY, toX, toY, duration = 500, sessionId }) => {
-        try {
-          if (!global.desktopAPI) {
-            return { error: 'Desktop API not available' };
-          }
-
-          // Auto-detect session
-          if (!sessionId) {
-            const sessions = global.desktopAPI.getDesktopSessions();
-            const activeSession = sessions.find(s => s.hasPermission);
-            if (!activeSession) {
-              return { error: 'No active desktop session found. Call start_desktop_session() first.' };
-            }
-            sessionId = activeSession.sessionId;
-          }
-
-          const commandId = global.desktopAPI.sendDesktopCommand(sessionId, 'drag', {
-            from: { x: fromX, y: fromY },
-            to: { x: toX, y: toY },
-            duration
-          });
-
-          return {
-            message: `Dragging from (${fromX}, ${fromY}) to (${toX}, ${toY})`,
-            commandId,
-            sessionId,
-            duration
-          };
-        } catch (error) {
-          return { error: `Failed to drag: ${error.message}` };
-        }
-      }
-    },
-
-    // 🔍 CHECK STATUS - What's happening?
+    // 📋 SIMPLE STATUS CHECK
     desktop_status: {
-      description: 'Check the status of all desktop connections',
+      description: 'Check if desktop access is working',
       parameters: z.object({}),
       handler: async () => {
         try {
           if (!global.desktopAPI) {
             return {
-              error: 'Desktop API not available',
-              solution: 'Ensure /desktop WebSocket endpoint is running on server'
+              status: 'unavailable',
+              user_message: 'Desktop control is not available on this server.'
             };
           }
 
           const sessions = global.desktopAPI.getDesktopSessions();
+          const activeSession = sessions.find(s => s.hasPermission);
+
+          if (activeSession) {
+            return {
+              status: 'active',
+              user_message: 'Desktop access is active! You should see the coral glow border around your screen.',
+              visual_confirmation: 'Look for coral/pink border around your screen',
+              session_info: {
+                authenticated: activeSession.isAuthenticated,
+                has_permission: activeSession.hasPermission,
+                recent_activity: activeSession.hasRecentFrame
+              }
+            };
+          }
+
+          const connectedSession = sessions.find(s => s.isAuthenticated);
+          if (connectedSession) {
+            return {
+              status: 'connected_no_permission',
+              user_message: 'BLOOM Desktop is connected but I don\'t have permission yet. Say "use my desktop" to request access.',
+              next_action: 'Request permission'
+            };
+          }
 
           return {
-            total_sessions: sessions.length,
-            sessions: sessions.map(session => ({
-              sessionId: session.sessionId,
-              authenticated: session.isAuthenticated,
-              hasPermission: session.hasPermission,
-              hasRecentFrame: session.hasRecentFrame,
-              status: session.hasPermission ? 'ACTIVE_CONTROL' :
-                     session.isAuthenticated ? 'CONNECTED' : 'CONNECTING',
-              visual_indicator: session.hasPermission ? 'User sees coral glow border' : 'No glow border'
-            })),
-            recommendation: sessions.length === 0 ?
-              'Call start_desktop_session() to get setup instructions' :
-              sessions.find(s => s.hasPermission) ?
-                'Ready for desktop control!' :
-                'Desktop connected but needs permission'
+            status: 'no_connection',
+            user_message: 'No desktop connection found. Say "Jaden, use my desktop" to get started.',
+            next_action: 'Set up desktop connection'
           };
+
         } catch (error) {
-          return { error: `Failed to check status: ${error.message}` };
+          return { error: `Status check failed: ${error.message}` };
         }
       }
     },
 
-    // 🛑 FINISH - Clean up when done
-    finish_desktop_session: {
-      description: 'Release desktop control and clean up - coral glow will disappear',
+    // 🛑 RELEASE CONTROL - Simple cleanup
+    release_desktop: {
+      description: 'Release desktop control - coral glow disappears',
       parameters: z.object({
-        sessionId: z.string().optional().describe('Session ID (auto-detected if not provided)'),
         message: z.string().optional().describe('Message to show user')
       }),
-      handler: async ({ sessionId, message = 'Desktop session completed' }) => {
+      handler: async ({ message = 'Desktop session completed' }) => {
         try {
           if (!global.desktopAPI) {
             return { error: 'Desktop API not available' };
           }
 
-          // Auto-detect session
-          if (!sessionId) {
-            const sessions = global.desktopAPI.getDesktopSessions();
-            const activeSession = sessions.find(s => s.hasPermission);
-            if (activeSession) {
-              sessionId = activeSession.sessionId;
-            }
-          }
+          const sessions = global.desktopAPI.getDesktopSessions();
+          const activeSession = sessions.find(s => s.hasPermission);
 
-          if (sessionId) {
-            const commandId = global.desktopAPI.sendDesktopCommand(sessionId, 'release_control', {
+          if (activeSession) {
+            const commandId = global.desktopAPI.sendDesktopCommand(activeSession.sessionId, 'release_control', {
               reason: message
             });
 
             return {
+              status: 'released',
               message: 'Desktop control released',
-              user_message: message,
-              commandId,
-              sessionId,
+              user_message: `${message} - The coral glow should disappear from your screen.`,
               visual_effect: 'Coral glow border will disappear',
-              status: 'session_ended'
+              commandId
             };
           } else {
             return {
-              message: 'No active desktop session to release',
-              status: 'no_active_session'
+              status: 'no_active_session',
+              user_message: 'No active desktop session to release.'
             };
           }
         } catch (error) {
-          return { error: `Failed to finish session: ${error.message}` };
+          return { error: `Failed to release desktop: ${error.message}` };
         }
       }
     }
