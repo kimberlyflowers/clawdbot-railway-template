@@ -16,9 +16,12 @@ const proxy = httpProxy.createProxyServer({ ws: true });
 // CRITICAL: Handle proxy errors to prevent server crashes
 proxy.on('error', (err, req, res) => {
   console.error('Proxy error:', err.message);
-  if (res && !res.headersSent) {
-    res.status(502).json({ error: 'Gateway not ready' });
+  // Only send HTTP response if res is an HTTP response object
+  if (res && typeof res.writeHead === 'function' && !res.headersSent) {
+    res.writeHead(502, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Gateway not ready' }));
   }
+  // WebSocket errors: just log, don't crash
 });
 
 // Desktop WebSocket server
