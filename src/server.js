@@ -1202,6 +1202,44 @@ app.post("/setup/import", requireSetupAuth, async (req, res) => {
   }
 });
 
+// Desktop API endpoints for skills to use (bridges process separation)
+app.get("/api/desktop/sessions", (req, res) => {
+  try {
+    const sessions = getDesktopSessions();
+    res.json({ ok: true, sessions });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.post("/api/desktop/permission", express.json(), (req, res) => {
+  try {
+    const { sessionId, reason } = req.body;
+    if (!sessionId || !reason) {
+      return res.status(400).json({ ok: false, error: 'Missing sessionId or reason' });
+    }
+
+    requestScreenPermission(sessionId, reason);
+    res.json({ ok: true, message: 'Permission requested' });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+app.post("/api/desktop/command", express.json(), (req, res) => {
+  try {
+    const { sessionId, action, data } = req.body;
+    if (!sessionId || !action) {
+      return res.status(400).json({ ok: false, error: 'Missing sessionId or action' });
+    }
+
+    const commandId = sendDesktopCommand(sessionId, action, data || {});
+    res.json({ ok: true, commandId });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
 // Proxy everything else to the gateway.
 const proxy = httpProxy.createProxyServer({
   target: GATEWAY_TARGET,

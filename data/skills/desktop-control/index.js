@@ -1,5 +1,53 @@
 const crypto = require('crypto');
 
+// Polyfill fetch for Node.js compatibility
+const fetch = globalThis.fetch || (() => {
+  try {
+    return require('node-fetch');
+  } catch (err) {
+    // If node-fetch not available, try using built-in http module
+    const http = require('http');
+    const https = require('https');
+    const { URL } = require('url');
+
+    return (url, options = {}) => {
+      return new Promise((resolve, reject) => {
+        const parsedUrl = new URL(url);
+        const lib = parsedUrl.protocol === 'https:' ? https : http;
+
+        const reqOptions = {
+          hostname: parsedUrl.hostname,
+          port: parsedUrl.port,
+          path: parsedUrl.pathname + parsedUrl.search,
+          method: options.method || 'GET',
+          headers: options.headers || {}
+        };
+
+        const req = lib.request(reqOptions, (res) => {
+          let data = '';
+          res.on('data', chunk => data += chunk);
+          res.on('end', () => {
+            resolve({
+              ok: res.statusCode >= 200 && res.statusCode < 300,
+              status: res.statusCode,
+              json: () => Promise.resolve(JSON.parse(data)),
+              text: () => Promise.resolve(data)
+            });
+          });
+        });
+
+        req.on('error', reject);
+
+        if (options.body) {
+          req.write(options.body);
+        }
+
+        req.end();
+      });
+    };
+  }
+})();
+
 /**
  * 🌸 BLOOM Desktop Control - User-Friendly Implementation
  *
@@ -26,12 +74,33 @@ const getUserId = () => {
   }
 };
 
-const getActiveSession = () => {
-  if (!global.desktopAPI) {
-    throw new Error('Desktop API not available');
-  }
+const callDesktopAPI = async (method, path, body = null) => {
+  try {
+    const options = {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+    };
 
-  const sessions = global.desktopAPI.getDesktopSessions();
+    if (body) {
+      options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(`http://127.0.0.1:8080${path}`, options);
+    const result = await response.json();
+
+    if (!result.ok) {
+      throw new Error(result.error || 'API call failed');
+    }
+
+    return result;
+  } catch (error) {
+    throw new Error(`Desktop API call failed: ${error.message}`);
+  }
+};
+
+const getActiveSession = async () => {
+  const result = await callDesktopAPI('GET', '/api/desktop/sessions');
+  const sessions = result.sessions || [];
   const activeSession = sessions.find(s => s.hasPermission);
 
   if (!activeSession) {
@@ -46,15 +115,18 @@ const getActiveSession = () => {
  */
 const use_desktop = async (task = 'help you with computer tasks') => {
   try {
-    if (!global.desktopAPI) {
+    const userId = getUserId();
+
+    let sessions;
+    try {
+      const result = await callDesktopAPI('GET', '/api/desktop/sessions');
+      sessions = result.sessions || [];
+    } catch (error) {
       return {
         error: 'Desktop system not available',
         user_message: 'Sorry, desktop control is not set up on this server yet.'
       };
     }
-
-    const userId = getUserId();
-    const sessions = global.desktopAPI.getDesktopSessions();
 
     // Check if user already has desktop connected with permission
     const userSession = sessions.find(s => s.isAuthenticated && s.customerToken?.includes(userId));
@@ -71,7 +143,10 @@ const use_desktop = async (task = 'help you with computer tasks') => {
 
     if (userSession && !userSession.hasPermission) {
       // Desktop connected but no permission - auto-request it
-      global.desktopAPI.requestScreenPermission(userSession.sessionId, `Jaden wants to ${task}`);
+      await callDesktopAPI('POST', '/api/desktop/permission', {
+        sessionId: userSession.sessionId,
+        reason: `Jaden wants to ${task}`
+      });
 
       return {
         status: 'requesting_permission',
@@ -117,13 +192,17 @@ const use_desktop = async (task = 'help you with computer tasks') => {
  */
 const see_screen = async () => {
   try {
-    const activeSession = getActiveSession();
-    const commandId = global.desktopAPI.sendDesktopCommand(activeSession.sessionId, 'screenshot', {});
+    const activeSession = await getActiveSession();
+    const result = await callDesktopAPI('POST', '/api/desktop/command', {
+      sessionId: activeSession.sessionId,
+      action: 'screenshot',
+      data: {}
+    });
 
     return {
       message: 'Taking screenshot of your desktop...',
       user_message: 'I\'m capturing what\'s on your screen now.',
-      commandId,
+      commandId: result.commandId,
       sessionId: activeSession.sessionId
     };
   } catch (error) {
@@ -139,15 +218,17 @@ const see_screen = async () => {
  */
 const click = async (x, y, button = 'left') => {
   try {
-    const activeSession = getActiveSession();
-    const commandId = global.desktopAPI.sendDesktopCommand(activeSession.sessionId, 'click', {
-      x, y, button
+    const activeSession = await getActiveSession();
+    const result = await callDesktopAPI('POST', '/api/desktop/command', {
+      sessionId: activeSession.sessionId,
+      action: 'click',
+      data: { x, y, button }
     });
 
     return {
       message: `Clicking at (${x}, ${y})`,
       user_message: `I'm clicking at position ${x}, ${y} on your screen.`,
-      commandId
+      commandId: result.commandId
     };
   } catch (error) {
     return {
@@ -162,13 +243,17 @@ const click = async (x, y, button = 'left') => {
  */
 const type = async (text) => {
   try {
-    const activeSession = getActiveSession();
-    const commandId = global.desktopAPI.sendDesktopCommand(activeSession.sessionId, 'type', { text });
+    const activeSession = await getActiveSession();
+    const result = await callDesktopAPI('POST', '/api/desktop/command', {
+      sessionId: activeSession.sessionId,
+      action: 'type',
+      data: { text }
+    });
 
     return {
       message: `Typing: "${text}"`,
       user_message: `I'm typing "${text}" on your computer.`,
-      commandId
+      commandId: result.commandId
     };
   } catch (error) {
     return {
@@ -183,15 +268,17 @@ const type = async (text) => {
  */
 const keys = async (combination) => {
   try {
-    const activeSession = getActiveSession();
-    const commandId = global.desktopAPI.sendDesktopCommand(activeSession.sessionId, 'keypress', {
-      keys: combination
+    const activeSession = await getActiveSession();
+    const result = await callDesktopAPI('POST', '/api/desktop/command', {
+      sessionId: activeSession.sessionId,
+      action: 'keypress',
+      data: { keys: combination }
     });
 
     return {
       message: `Pressing keys: ${combination}`,
       user_message: `I'm pressing ${combination} on your keyboard.`,
-      commandId
+      commandId: result.commandId
     };
   } catch (error) {
     return {
@@ -206,14 +293,16 @@ const keys = async (combination) => {
  */
 const desktop_status = async () => {
   try {
-    if (!global.desktopAPI) {
+    let sessions;
+    try {
+      const result = await callDesktopAPI('GET', '/api/desktop/sessions');
+      sessions = result.sessions || [];
+    } catch (error) {
       return {
         status: 'unavailable',
         user_message: 'Desktop control is not available on this server.'
       };
     }
-
-    const sessions = global.desktopAPI.getDesktopSessions();
     const activeSession = sessions.find(s => s.hasPermission);
 
     if (activeSession) {
@@ -254,16 +343,21 @@ const desktop_status = async () => {
  */
 const release_desktop = async (message = 'Desktop session completed') => {
   try {
-    if (!global.desktopAPI) {
+    let sessions;
+    try {
+      const result = await callDesktopAPI('GET', '/api/desktop/sessions');
+      sessions = result.sessions || [];
+    } catch (error) {
       return { error: 'Desktop API not available' };
     }
 
-    const sessions = global.desktopAPI.getDesktopSessions();
     const activeSession = sessions.find(s => s.hasPermission);
 
     if (activeSession) {
-      const commandId = global.desktopAPI.sendDesktopCommand(activeSession.sessionId, 'release_control', {
-        reason: message
+      const result = await callDesktopAPI('POST', '/api/desktop/command', {
+        sessionId: activeSession.sessionId,
+        action: 'release_control',
+        data: { reason: message }
       });
 
       return {
@@ -271,7 +365,7 @@ const release_desktop = async (message = 'Desktop session completed') => {
         message: 'Desktop control released',
         user_message: `${message} - The coral glow should disappear from your screen.`,
         visual_effect: 'Coral glow border will disappear',
-        commandId
+        commandId: result.commandId
       };
     } else {
       return {
