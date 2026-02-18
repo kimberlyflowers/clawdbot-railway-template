@@ -1253,7 +1253,8 @@ proxy.on("error", (err, _req, _res) => {
 
 app.use(async (req, res) => {
   // If not configured, force users to /setup for any non-setup routes.
-  if (!isConfigured() && !req.path.startsWith("/setup")) {
+  // Exempt /setup, /desktop, and /api/desktop (desktop control doesn't need config)
+  if (!isConfigured() && !req.path.startsWith("/setup") && !req.path.startsWith("/desktop") && !req.path.startsWith("/api/desktop")) {
     return res.redirect("/setup");
   }
 
