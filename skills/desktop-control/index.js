@@ -32,14 +32,24 @@ const getUserId = () => {
 const connectToDesktop = async () => {
   return new Promise((resolve, reject) => {
     try {
-      const gatewayToken = process.env.OPENCLAW_GATEWAY_TOKEN || 'test-token';
+      const gatewayToken = process.env.OPENCLAW_GATEWAY_TOKEN || '';
       const gatewayUrl = process.env.OPENCLAW_GATEWAY_URL || 'ws://127.0.0.1:18789';
+      const userId = process.env.OPENCLAW_USER_ID || 'root';
       
-      const wsUrl = `${gatewayUrl}/desktop?auth.token=${gatewayToken}`;
+      // Connect to gateway's /desktop endpoint with auth
+      const authParam = gatewayToken ? `?auth.token=${gatewayToken}` : '';
+      const wsUrl = `${gatewayUrl}/desktop${authParam}`;
       
       wsConnection = new WebSocket(wsUrl);
       
       wsConnection.on('open', () => {
+        // Send initialization message
+        const init = {
+          action: 'init',
+          userId,
+          timestamp: Date.now()
+        };
+        wsConnection.send(JSON.stringify(init));
         resolve(wsConnection);
       });
       
