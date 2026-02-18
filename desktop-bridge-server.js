@@ -171,10 +171,11 @@ wss.on('connection', (socket, req) => {
   });
 });
 
-server.listen(PORT, '127.0.0.1', () => {
-  console.log(`🌸 BLOOM Desktop Bridge Server running on ws://127.0.0.1:${PORT}/desktop`);
-  console.log(`API endpoint: http://127.0.0.1:${PORT}/api/command`);
-  console.log(`Health check: http://127.0.0.1:${PORT}/health`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`🌸 BLOOM Desktop Bridge Server running on ws://0.0.0.0:${PORT}/desktop`);
+  console.log(`Public URL: wss://openclaw-railway-template-production-b301.up.railway.app:${PORT}/desktop`);
+  console.log(`API endpoint: http://0.0.0.0:${PORT}/api/command`);
+  console.log(`Health check: http://0.0.0.0:${PORT}/health`);
 });
 
 process.on('SIGINT', () => {

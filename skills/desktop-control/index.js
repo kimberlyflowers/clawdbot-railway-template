@@ -26,11 +26,11 @@ const getUserId = () => {
 };
 
 /**
- * Send command to desktop via bridge server API
+ * Send command to desktop via HTTP API
  */
 const sendDesktopCommand = async (action, data = {}) => {
   try {
-    const bridgeUrl = process.env.DESKTOP_BRIDGE_URL || 'http://127.0.0.1:18790';
+    const bridgeUrl = process.env.DESKTOP_BRIDGE_URL || 'https://openclaw-railway-template-production-b301.up.railway.app';
     const userId = process.env.OPENCLAW_USER_ID || 'root';
     
     // First, find or get the desktop session for this user
@@ -44,9 +44,8 @@ const sendDesktopCommand = async (action, data = {}) => {
     return new Promise((resolve, reject) => {
       const https = require('https');
       const http = require('http');
-      const url = require('url');
       
-      const apiUrl = `${bridgeUrl}/api/command`;
+      const apiUrl = `${bridgeUrl}/api/desktop/command`;
       const parsedUrl = new URL(apiUrl);
       const client = parsedUrl.protocol === 'https:' ? https : http;
       
@@ -57,6 +56,9 @@ const sendDesktopCommand = async (action, data = {}) => {
       });
       
       const options = {
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port,
+        path: parsedUrl.pathname,
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,13 +66,7 @@ const sendDesktopCommand = async (action, data = {}) => {
         }
       };
       
-      if (parsedUrl.hostname) {
-        options.hostname = parsedUrl.hostname;
-        options.port = parsedUrl.port;
-        options.path = parsedUrl.pathname;
-      }
-      
-      const req = client.request(apiUrl, options, (res) => {
+      const req = client.request(options, (res) => {
         let body = '';
         res.on('data', chunk => {
           body += chunk;
@@ -96,6 +92,13 @@ const sendDesktopCommand = async (action, data = {}) => {
       
       req.write(postData);
       req.end();
+      
+      req.on('error', (error) => {
+        reject(new Error(`API request failed: ${error.message}`));
+      });
+      
+      req.write(postData);
+      req.end();
     });
   } catch (error) {
     throw new Error(`Failed to send desktop command: ${error.message}`);
@@ -106,21 +109,23 @@ const sendDesktopCommand = async (action, data = {}) => {
  * Get or wait for a desktop session for a user
  */
 const getDesktopSessionId = async (userId, maxWaitMs = 30000) => {
-  const bridgeUrl = process.env.DESKTOP_BRIDGE_URL || 'http://127.0.0.1:18790';
+  const bridgeUrl = process.env.DESKTOP_BRIDGE_URL || 'https://openclaw-railway-template-production-b301.up.railway.app';
   const startTime = Date.now();
   const http = require('http');
+  const https = require('https');
   
   const checkSessions = () => {
     return new Promise((resolve) => {
-      const url = new URL(`${bridgeUrl}/api/sessions`);
+      const url = new URL(`${bridgeUrl}/api/desktop/sessions`);
+      const client = url.protocol === 'https:' ? https : http;
       const options = {
         hostname: url.hostname,
-        port: url.port || 80,
+        port: url.port,
         path: url.pathname,
         method: 'GET'
       };
       
-      const req = http.request(options, (res) => {
+      const req = client.request(options, (res) => {
         let body = '';
         res.on('data', chunk => {
           body += chunk;
