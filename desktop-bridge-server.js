@@ -21,8 +21,25 @@ const PORT = process.env.DESKTOP_BRIDGE_PORT || 18790;
 const server = http.createServer((req, res) => {
   // Health check endpoint
   if (req.url === '/health') {
-    res.writeHead(200);
-    res.end(JSON.stringify({ status: 'ok', sessions: sessions.size }));
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ 
+      status: 'ok', 
+      sessions: sessions.size,
+      sessionIds: Array.from(sessions.keys())
+    }));
+    return;
+  }
+  
+  // List sessions endpoint
+  if (req.url === '/api/sessions' && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    const sessionList = Array.from(sessions.values()).map(s => ({
+      id: s.id,
+      userId: s.userId,
+      hasPermission: s.hasPermission,
+      connectedAt: s.connectedAt
+    }));
+    res.end(JSON.stringify({ ok: true, sessions: sessionList }));
     return;
   }
   

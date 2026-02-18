@@ -10,7 +10,6 @@ const WebSocket = require('ws');
 
 // Session management
 const userSessions = new Map();
-let wsConnection = null;
 
 const generateSecureUserToken = (userId) => {
   const timestamp = Date.now();
@@ -27,86 +26,139 @@ const getUserId = () => {
 };
 
 /**
- * Connect to BLOOM Desktop Bridge Server
- */
-const connectToDesktop = async () => {
-  return new Promise((resolve, reject) => {
-    try {
-      const bridgeUrl = process.env.DESKTOP_BRIDGE_URL || 'ws://127.0.0.1:18790';
-      const userId = process.env.OPENCLAW_USER_ID || 'root';
-      
-      // Connect to desktop bridge server
-      const wsUrl = `${bridgeUrl}/desktop?userId=${encodeURIComponent(userId)}`;
-      
-      wsConnection = new WebSocket(wsUrl);
-      
-      wsConnection.on('open', () => {
-        // Send initialization message
-        const init = {
-          action: 'init',
-          userId,
-          timestamp: Date.now()
-        };
-        wsConnection.send(JSON.stringify(init));
-        resolve(wsConnection);
-      });
-      
-      wsConnection.on('error', (error) => {
-        reject(new Error(`WebSocket connection failed: ${error.message}`));
-      });
-      
-      wsConnection.on('close', () => {
-        wsConnection = null;
-      });
-    } catch (error) {
-      reject(error);
-    }
-  });
-};
-
-/**
- * Send command to desktop via WebSocket
+ * Send command to desktop via bridge server API
  */
 const sendDesktopCommand = async (action, data = {}) => {
   try {
-    // Ensure connection exists
-    if (!wsConnection || wsConnection.readyState !== WebSocket.OPEN) {
-      wsConnection = await connectToDesktop();
+    const bridgeUrl = process.env.DESKTOP_BRIDGE_URL || 'http://127.0.0.1:18790';
+    const userId = process.env.OPENCLAW_USER_ID || 'root';
+    
+    // First, find or get the desktop session for this user
+    const sessionId = await getDesktopSessionId(userId);
+    
+    if (!sessionId) {
+      throw new Error('No BLOOM Desktop session available');
     }
-
+    
+    // Send command via API endpoint
     return new Promise((resolve, reject) => {
-      const commandId = crypto.randomBytes(8).toString('hex');
-      const timeout = setTimeout(() => {
-        reject(new Error('Desktop command timeout'));
-      }, 30000); // 30 second timeout
-
-      const messageHandler = (event) => {
-        try {
-          const message = JSON.parse(event.data || event);
-          if (message.commandId === commandId) {
-            clearTimeout(timeout);
-            wsConnection.off('message', messageHandler);
-            resolve(message);
-          }
-        } catch (e) {
-          // Not a JSON message for this command, ignore
+      const https = require('https');
+      const http = require('http');
+      const url = require('url');
+      
+      const apiUrl = `${bridgeUrl}/api/command`;
+      const parsedUrl = new URL(apiUrl);
+      const client = parsedUrl.protocol === 'https:' ? https : http;
+      
+      const postData = JSON.stringify({
+        sessionId,
+        action,
+        payload: data
+      });
+      
+      const options = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData)
         }
       };
-
-      wsConnection.on('message', messageHandler);
-
-      const command = {
-        commandId,
-        action,
-        data,
-        timestamp: Date.now()
-      };
-
-      wsConnection.send(JSON.stringify(command));
+      
+      if (parsedUrl.hostname) {
+        options.hostname = parsedUrl.hostname;
+        options.port = parsedUrl.port;
+        options.path = parsedUrl.pathname;
+      }
+      
+      const req = client.request(apiUrl, options, (res) => {
+        let body = '';
+        res.on('data', chunk => {
+          body += chunk;
+        });
+        
+        res.on('end', () => {
+          try {
+            const response = JSON.parse(body);
+            if (res.statusCode >= 200 && res.statusCode < 300) {
+              resolve(response);
+            } else {
+              reject(new Error(response.error || `HTTP ${res.statusCode}`));
+            }
+          } catch (error) {
+            reject(new Error(`Failed to parse response: ${error.message}`));
+          }
+        });
+      });
+      
+      req.on('error', (error) => {
+        reject(new Error(`API request failed: ${error.message}`));
+      });
+      
+      req.write(postData);
+      req.end();
     });
   } catch (error) {
     throw new Error(`Failed to send desktop command: ${error.message}`);
   }
+};
+
+/**
+ * Get or wait for a desktop session for a user
+ */
+const getDesktopSessionId = async (userId, maxWaitMs = 30000) => {
+  const bridgeUrl = process.env.DESKTOP_BRIDGE_URL || 'http://127.0.0.1:18790';
+  const startTime = Date.now();
+  const http = require('http');
+  
+  const checkSessions = () => {
+    return new Promise((resolve) => {
+      const url = new URL(`${bridgeUrl}/api/sessions`);
+      const options = {
+        hostname: url.hostname,
+        port: url.port || 80,
+        path: url.pathname,
+        method: 'GET'
+      };
+      
+      const req = http.request(options, (res) => {
+        let body = '';
+        res.on('data', chunk => {
+          body += chunk;
+        });
+        res.on('end', () => {
+          try {
+            const data = JSON.parse(body);
+            if (data.ok && data.sessions && data.sessions.length > 0) {
+              // Get first available session
+              const session = data.sessions[0];
+              resolve(session.id);
+            } else {
+              resolve(null);
+            }
+          } catch (error) {
+            resolve(null);
+          }
+        });
+      });
+      
+      req.on('error', () => {
+        resolve(null);
+      });
+      
+      req.end();
+    });
+  };
+  
+  while (Date.now() - startTime < maxWaitMs) {
+    const sessionId = await checkSessions();
+    if (sessionId) {
+      return sessionId;
+    }
+    // Wait 500ms before checking again
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  
+  return null;
 };
 
 /**
