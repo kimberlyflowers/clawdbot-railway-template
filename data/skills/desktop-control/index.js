@@ -91,7 +91,8 @@ const getAvailableSession = async () => {
   try {
     const result = await apiRequest('GET', 'http://127.0.0.1:8080/api/desktop/sessions');
     if (result.sessions && result.sessions.length > 0) {
-      return result.sessions[0].id;
+      // API returns sessionId, not id
+      return result.sessions[0].sessionId || result.sessions[0].id;
     }
     return null;
   } catch (error) {
