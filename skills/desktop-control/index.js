@@ -27,18 +27,16 @@ const getUserId = () => {
 };
 
 /**
- * Connect to OpenClaw gateway's desktop WebSocket
+ * Connect to BLOOM Desktop Bridge Server
  */
 const connectToDesktop = async () => {
   return new Promise((resolve, reject) => {
     try {
-      const gatewayToken = process.env.OPENCLAW_GATEWAY_TOKEN || '';
-      const gatewayUrl = process.env.OPENCLAW_GATEWAY_URL || 'ws://127.0.0.1:18789';
+      const bridgeUrl = process.env.DESKTOP_BRIDGE_URL || 'ws://127.0.0.1:18790';
       const userId = process.env.OPENCLAW_USER_ID || 'root';
       
-      // Connect to gateway's /desktop endpoint with auth
-      const authParam = gatewayToken ? `?auth.token=${gatewayToken}` : '';
-      const wsUrl = `${gatewayUrl}/desktop${authParam}`;
+      // Connect to desktop bridge server
+      const wsUrl = `${bridgeUrl}/desktop?userId=${encodeURIComponent(userId)}`;
       
       wsConnection = new WebSocket(wsUrl);
       
