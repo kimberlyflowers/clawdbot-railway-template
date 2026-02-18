@@ -1,0 +1,11 @@
+{
+  "name": "bloomie-desktop-control",
+  "version": "1.0.0",
+  "description": "BLOOM Desktop Control Skill - Direct WebSocket integration",
+  "main": "index.js",
+  "author": "Bloomie",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.14.2"
+  }
+}

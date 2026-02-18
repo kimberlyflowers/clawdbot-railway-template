@@ -1,62 +1,16 @@
 const crypto = require('crypto');
-
-// Polyfill fetch for Node.js compatibility
-const fetch = globalThis.fetch || (() => {
-  try {
-    return require('node-fetch');
-  } catch (err) {
-    // If node-fetch not available, try using built-in http module
-    const http = require('http');
-    const https = require('https');
-    const { URL } = require('url');
-
-    return (url, options = {}) => {
-      return new Promise((resolve, reject) => {
-        const parsedUrl = new URL(url);
-        const lib = parsedUrl.protocol === 'https:' ? https : http;
-
-        const reqOptions = {
-          hostname: parsedUrl.hostname,
-          port: parsedUrl.port,
-          path: parsedUrl.pathname + parsedUrl.search,
-          method: options.method || 'GET',
-          headers: options.headers || {}
-        };
-
-        const req = lib.request(reqOptions, (res) => {
-          let data = '';
-          res.on('data', chunk => data += chunk);
-          res.on('end', () => {
-            resolve({
-              ok: res.statusCode >= 200 && res.statusCode < 300,
-              status: res.statusCode,
-              json: () => Promise.resolve(JSON.parse(data)),
-              text: () => Promise.resolve(data)
-            });
-          });
-        });
-
-        req.on('error', reject);
-
-        if (options.body) {
-          req.write(options.body);
-        }
-
-        req.end();
-      });
-    };
-  }
-})();
+const WebSocket = require('ws');
 
 /**
- * 🌸 BLOOM Desktop Control - User-Friendly Implementation
+ * 🌸 BLOOM Desktop Control - WebSocket Direct Implementation
  *
- * Provides simple desktop control functions that auto-detect sessions
- * and handle all the technical complexity behind the scenes.
+ * Communicates directly with BLOOM Desktop via WebSocket
+ * No HTTP bridge needed — uses the same connection as the app
  */
 
-// Smart session management
+// Session management
 const userSessions = new Map();
+let wsConnection = null;
 
 const generateSecureUserToken = (userId) => {
   const timestamp = Date.now();
@@ -65,8 +19,6 @@ const generateSecureUserToken = (userId) => {
 };
 
 const getUserId = () => {
-  // In production, get from OpenClaw session context
-  // For now, use system username as identifier
   try {
     return require('os').userInfo().username || 'user';
   } catch {
@@ -74,42 +26,79 @@ const getUserId = () => {
   }
 };
 
-const callDesktopAPI = async (method, path, body = null) => {
-  try {
-    const options = {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    };
-
-    if (body) {
-      options.body = JSON.stringify(body);
+/**
+ * Connect to OpenClaw gateway's desktop WebSocket
+ */
+const connectToDesktop = async () => {
+  return new Promise((resolve, reject) => {
+    try {
+      const gatewayToken = process.env.OPENCLAW_GATEWAY_TOKEN || 'test-token';
+      const gatewayUrl = process.env.OPENCLAW_GATEWAY_URL || 'ws://127.0.0.1:18789';
+      
+      const wsUrl = `${gatewayUrl}/desktop?auth.token=${gatewayToken}`;
+      
+      wsConnection = new WebSocket(wsUrl);
+      
+      wsConnection.on('open', () => {
+        resolve(wsConnection);
+      });
+      
+      wsConnection.on('error', (error) => {
+        reject(new Error(`WebSocket connection failed: ${error.message}`));
+      });
+      
+      wsConnection.on('close', () => {
+        wsConnection = null;
+      });
+    } catch (error) {
+      reject(error);
     }
-
-    const response = await fetch(`http://127.0.0.1:8080${path}`, options);
-    const result = await response.json();
-
-    if (!result.ok) {
-      throw new Error(result.error || 'API call failed');
-    }
-
-    return result;
-  } catch (error) {
-    throw new Error(`Desktop API call failed: ${error.message}`);
-  }
+  });
 };
 
-const getActiveSession = async () => {
-  const result = await callDesktopAPI('GET', '/api/desktop/sessions');
-  const sessions = result.sessions || [];
-  const activeSession = sessions.find(s => s.hasPermission);
+/**
+ * Send command to desktop via WebSocket
+ */
+const sendDesktopCommand = async (action, data = {}) => {
+  try {
+    // Ensure connection exists
+    if (!wsConnection || wsConnection.readyState !== WebSocket.OPEN) {
+      wsConnection = await connectToDesktop();
+    }
 
-  if (!activeSession) {
-    throw new Error('No desktop access. Say "Jaden, use my desktop" to get started.');
+    return new Promise((resolve, reject) => {
+      const commandId = crypto.randomBytes(8).toString('hex');
+      const timeout = setTimeout(() => {
+        reject(new Error('Desktop command timeout'));
+      }, 30000); // 30 second timeout
+
+      const messageHandler = (event) => {
+        try {
+          const message = JSON.parse(event.data || event);
+          if (message.commandId === commandId) {
+            clearTimeout(timeout);
+            wsConnection.off('message', messageHandler);
+            resolve(message);
+          }
+        } catch (e) {
+          // Not a JSON message for this command, ignore
+        }
+      };
+
+      wsConnection.on('message', messageHandler);
+
+      const command = {
+        commandId,
+        action,
+        data,
+        timestamp: Date.now()
+      };
+
+      wsConnection.send(JSON.stringify(command));
+    });
+  } catch (error) {
+    throw new Error(`Failed to send desktop command: ${error.message}`);
   }
-
-  return activeSession;
 };
 
 /**
@@ -119,34 +108,27 @@ const use_desktop = async (task = 'help you with computer tasks') => {
   try {
     const userId = getUserId();
 
-    let sessions;
+    // Try to get session list
     try {
-      const result = await callDesktopAPI('GET', '/api/desktop/sessions');
-      sessions = result.sessions || [];
-    } catch (error) {
-      return {
-        error: 'Desktop system not available',
-        user_message: 'Sorry, desktop control is not set up on this server yet.'
-      };
-    }
+      const result = await sendDesktopCommand('list_sessions', {});
+      
+      // Check if user already has permission
+      if (result.sessions && result.sessions.length > 0) {
+        const userSession = result.sessions.find(s => s.isAuthenticated && s.hasPermission);
+        
+        if (userSession) {
+          return {
+            status: 'ready',
+            message: `Perfect! I can see your desktop. The coral glow border should be visible.`,
+            user_message: `I'm ready to ${task}. You should see the coral glow indicating I have access.`,
+            sessionId: userSession.sessionId,
+            visual_confirmation: 'Look for coral/pink glow border around your entire screen'
+          };
+        }
+      }
 
-    // Check if user already has desktop connected with permission
-    const userSession = sessions.find(s => s.isAuthenticated && s.customerToken?.includes(userId));
-
-    if (userSession && userSession.hasPermission) {
-      return {
-        status: 'ready',
-        message: `Perfect! I can see your desktop. The coral glow border should be visible around your screen.`,
-        user_message: `I'm ready to ${task}. You should see the coral glow indicating I have access.`,
-        sessionId: userSession.sessionId,
-        visual_confirmation: 'Look for coral/pink glow border around your entire screen'
-      };
-    }
-
-    if (userSession && !userSession.hasPermission) {
-      // Desktop connected but no permission - auto-request it
-      await callDesktopAPI('POST', '/api/desktop/permission', {
-        sessionId: userSession.sessionId,
+      // Request permission
+      const permResult = await sendDesktopCommand('request_permission', {
         reason: `Jaden wants to ${task}`
       });
 
@@ -154,35 +136,31 @@ const use_desktop = async (task = 'help you with computer tasks') => {
         status: 'requesting_permission',
         message: `I can see your BLOOM Desktop is connected! I just sent a permission request.`,
         user_message: `Please click "Allow" in the popup to let me ${task}. The coral glow will appear once you approve.`,
-        sessionId: userSession.sessionId,
-        next_action: 'User will see permission popup - just click Allow'
+        next_action: 'User will see permission popup - click Allow'
+      };
+    } catch (apiError) {
+      // WebSocket not ready yet, provide setup instructions
+      const secureToken = generateSecureUserToken(userId);
+      userSessions.set(userId, {
+        token: secureToken,
+        task,
+        timestamp: Date.now()
+      });
+
+      const directConnection = `wss://openclaw-railway-template-production-b301.up.railway.app/desktop:${secureToken}`;
+
+      return {
+        status: 'need_desktop_app',
+        message: `I need desktop access to ${task}. I've prepared a secure connection for you.`,
+        user_message: `To let me ${task}, please:\n\n1️⃣ **Download BLOOM Desktop:**\nhttps://github.com/kimberlyflowers/bloom-desktop/releases/latest\n\n2️⃣ **Use this connection code:**\n${directConnection}\n\n3️⃣ **Click "Allow" when I request permission**`,
+        connection_code: directConnection,
+        download_url: 'https://github.com/kimberlyflowers/bloom-desktop/releases/latest'
       };
     }
-
-    // No desktop connected - provide 1-click solution
-    const secureToken = generateSecureUserToken(userId);
-    userSessions.set(userId, {
-      token: secureToken,
-      task,
-      timestamp: Date.now()
-    });
-
-    const directConnection = `wss://openclaw-railway-template-production-b301.up.railway.app/desktop:${secureToken}`;
-
-    return {
-      status: 'need_desktop_app',
-      message: `I need desktop access to ${task}. I've prepared a secure connection for you.`,
-      user_message: `To let me ${task}, please:\n\n1️⃣ **Download BLOOM Desktop:**\nhttps://github.com/kimberlyflowers/bloom-desktop/releases/latest\n\n2️⃣ **Use this connection code:**\n${directConnection}\n\n3️⃣ **Click "Allow" when I request permission**`,
-      connection_code: directConnection,
-      download_url: 'https://github.com/kimberlyflowers/bloom-desktop/releases/latest',
-      secure_token: secureToken,
-      auto_expires: '1 hour for security',
-      next_action: 'Once connected, I\'ll automatically request permission and you just click Allow'
-    };
   } catch (error) {
     return {
       error: `Desktop setup failed: ${error.message}`,
-      user_message: 'Sorry, something went wrong setting up desktop access. Please try again.'
+      user_message: error.message
     };
   }
 };
@@ -192,19 +170,13 @@ const use_desktop = async (task = 'help you with computer tasks') => {
  */
 const see_screen = async () => {
   try {
-    const activeSession = await getActiveSession();
-
-    const result = await callDesktopAPI('POST', '/api/desktop/command', {
-      sessionId: activeSession.sessionId,
-      action: 'screenshot',
-      data: {}
-    });
-
+    const result = await sendDesktopCommand('screenshot', {});
+    
     return {
       message: 'Taking screenshot of your desktop...',
       user_message: 'I\'m capturing what\'s on your screen now.',
       commandId: result.commandId,
-      sessionId: activeSession.sessionId
+      screenshot: result.data?.image || null
     };
   } catch (error) {
     return {
@@ -219,12 +191,10 @@ const see_screen = async () => {
  */
 const click = async (x, y, button = 'left') => {
   try {
-    const activeSession = await getActiveSession();
-
-    const result = await callDesktopAPI('POST', '/api/desktop/command', {
-      sessionId: activeSession.sessionId,
-      action: 'click',
-      data: { x, y, button }
+    const result = await sendDesktopCommand('click', {
+      x,
+      y,
+      button
     });
 
     return {
@@ -245,12 +215,8 @@ const click = async (x, y, button = 'left') => {
  */
 const type = async (text) => {
   try {
-    const activeSession = await getActiveSession();
-
-    const result = await callDesktopAPI('POST', '/api/desktop/command', {
-      sessionId: activeSession.sessionId,
-      action: 'type',
-      data: { text }
+    const result = await sendDesktopCommand('type', {
+      text
     });
 
     return {
@@ -271,12 +237,8 @@ const type = async (text) => {
  */
 const keys = async (combination) => {
   try {
-    const activeSession = await getActiveSession();
-
-    const result = await callDesktopAPI('POST', '/api/desktop/command', {
-      sessionId: activeSession.sessionId,
-      action: 'keypress',
-      data: { keys: combination }
+    const result = await sendDesktopCommand('keypress', {
+      keys: combination
     });
 
     return {
@@ -297,51 +259,27 @@ const keys = async (combination) => {
  */
 const desktop_status = async () => {
   try {
-    let sessions;
-
-    try {
-      const result = await callDesktopAPI('GET', '/api/desktop/sessions');
-      sessions = result.sessions || [];
-    } catch (error) {
-      return {
-        status: 'unavailable',
-        user_message: 'Desktop control is not available on this server.'
-      };
-    }
-
-    const activeSession = sessions.find(s => s.hasPermission);
-
-    if (activeSession) {
+    const result = await sendDesktopCommand('status', {});
+    
+    if (result.ok) {
       return {
         status: 'active',
         user_message: 'Desktop access is active! You should see the coral glow border around your screen.',
         visual_confirmation: 'Look for coral/pink border around your screen',
-        session_info: {
-          authenticated: activeSession.isAuthenticated,
-          has_permission: activeSession.hasPermission,
-          recent_activity: activeSession.hasRecentFrame
-        }
+        session_info: result.data || {}
       };
     }
-
-    const connectedSession = sessions.find(s => s.isAuthenticated);
-
-    if (connectedSession) {
-      return {
-        status: 'connected_no_permission',
-        user_message: 'BLOOM Desktop is connected but I don\'t have permission yet. Say "use my desktop" to request access.',
-        next_action: 'Request permission'
-      };
-    }
-
+    
     return {
-      status: 'no_connection',
-      user_message: 'No desktop connection found. Say "Jaden, use my desktop" to get started.',
-      next_action: 'Set up desktop connection'
+      status: 'connected_no_permission',
+      user_message: 'BLOOM Desktop is connected but I don\'t have permission yet. Say "use my desktop" to request access.',
+      next_action: 'Request permission'
     };
   } catch (error) {
     return {
-      error: `Status check failed: ${error.message}`
+      status: 'no_connection',
+      user_message: 'BLOOM Desktop is not connected. Make sure the app is running and connected to the gateway.',
+      next_action: 'Start BLOOM Desktop app'
     };
   }
 };
@@ -351,39 +289,17 @@ const desktop_status = async () => {
  */
 const release_desktop = async (message = 'Desktop session completed') => {
   try {
-    let sessions;
+    const result = await sendDesktopCommand('release_control', {
+      reason: message
+    });
 
-    try {
-      const result = await callDesktopAPI('GET', '/api/desktop/sessions');
-      sessions = result.sessions || [];
-    } catch (error) {
-      return {
-        error: 'Desktop API not available'
-      };
-    }
-
-    const activeSession = sessions.find(s => s.hasPermission);
-
-    if (activeSession) {
-      const result = await callDesktopAPI('POST', '/api/desktop/command', {
-        sessionId: activeSession.sessionId,
-        action: 'release_control',
-        data: { reason: message }
-      });
-
-      return {
-        status: 'released',
-        message: 'Desktop control released',
-        user_message: `${message} - The coral glow should disappear from your screen.`,
-        visual_effect: 'Coral glow border will disappear',
-        commandId: result.commandId
-      };
-    } else {
-      return {
-        status: 'no_active_session',
-        user_message: 'No active desktop session to release.'
-      };
-    }
+    return {
+      status: 'released',
+      message: 'Desktop control released',
+      user_message: `${message} - The coral glow should disappear from your screen.`,
+      visual_effect: 'Coral glow border will disappear',
+      commandId: result.commandId
+    };
   } catch (error) {
     return {
       error: `Failed to release desktop: ${error.message}`

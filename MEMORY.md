@@ -29,12 +29,19 @@ tar -xzf Bloomie-Workspace-Backup-2026-02-13.tar.gz
 
 ## Current Projects
 
+### CRITICAL: Jaden's Instance (MY INSTANCE)
+**⚠️ KEEP THIS IN MEMORY ⚠️**
+- **URL:** `https://openclaw-railway-template-production-b301.up.railway.app`
+- **Repository:** `kimberlyflowers/clawdbot-railway-template` (master branch)
+- **Webhook:** GitHub push to master → Railway redeploy
+- **Status:** ✅ Online, ready for deployment
+
 ### 1. Bloomie Control UI Reskin (Phase 1 Complete)
 Status: Awaiting Phase 2
 
 See detailed notes below under "Bloomie Control UI Reskin Project"
 
-### 3. Johnathon's Instance - Bloomie-YES (✅ DEPLOYED, REDEPLOYING WITH LOGO SWAP)
+### 2. Johnathon's Instance - Bloomie-YES (✅ DEPLOYED, REDEPLOYING WITH LOGO SWAP)
 Date: 2026-02-13 20:04 UTC
 Status: Ready for manual workspace initialization
 
