@@ -1,0 +1,16 @@
+{
+  "name": "desktop-control",
+  "version": "1.0.0",
+  "description": "BLOOM Desktop Control - User-friendly desktop automation for Jaden",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": ["desktop", "control", "automation", "bloom", "jaden"],
+  "author": "BLOOM",
+  "license": "MIT",
+  "dependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
