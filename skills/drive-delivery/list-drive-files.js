@@ -3,7 +3,7 @@ const path = require('path');
 const { google } = require('googleapis');
 
 const TOKENS_FILE = path.join(__dirname, '.drive-tokens.json');
-const FOLDER_ID = '1u4bjqh92rl9xJHC5vmP69fgDq_beNsF1';
+const FOLDER_ID = process.env.BLOOMIE_FOLDER_ID || '1u4bjqh92rl9xJHC5vmP69fgDq_beNsF1';
 
 async function listFilesInFolder() {
   console.log('📂 Listing files in Bloomie Deliveries folder...\n');
@@ -17,11 +17,20 @@ async function listFilesInFolder() {
     const tokens = JSON.parse(fs.readFileSync(TOKENS_FILE, 'utf8'));
     console.log('✓ Loaded Drive tokens\n');
 
+    // Load config or use environment variables
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const redirectUri = process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/oauth2callback';
+
+    if (!clientId || !clientSecret) {
+      throw new Error('Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET environment variables');
+    }
+
     // Create auth
     const oauth2Client = new google.auth.OAuth2(
-      '1096434850659-8d4dqfhj9jqu8t9s6i6hpll5ucc3k3ul.apps.googleusercontent.com',
-      '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',
-      'http://localhost:3000/oauth2callback'
+      clientId,
+      clientSecret,
+      redirectUri
     );
 
     oauth2Client.setCredentials(tokens);
