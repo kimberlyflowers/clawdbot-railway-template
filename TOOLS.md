@@ -1,40 +1,56 @@
-# TOOLS.md - Local Notes
+# TOOLS.md - Installed Skills
 
-Skills define _how_ tools work. This file is for _your_ specifics — the stuff that's unique to your setup.
+## bloomie-drive-delivery
+**Location:** `/data/workspace/skills/drive-delivery/`  
+**Purpose:** Upload files to Google Drive, return shareable links  
+**Auth:** OAuth2 (Kimberly's Gmail), tokens in `.drive-tokens.json`
 
-## What Goes Here
-
-Things like:
-
-- Camera names and locations
-- SSH hosts and aliases
-- Preferred voices for TTS
-- Speaker/room names
-- Device nicknames
-- Anything environment-specific
-
-## Examples
-
-```markdown
-### Cameras
-
-- living-room → Main area, 180° wide angle
-- front-door → Entrance, motion-triggered
-
-### SSH
-
-- home-server → 192.168.1.100, user: admin
-
-### TTS
-
-- Preferred voice: "Nova" (warm, slightly British)
-- Default speaker: Kitchen HomePod
+```javascript
+const { uploadToDrive } = require('/data/workspace/skills/drive-delivery/scripts/upload.js');
+const result = await uploadToDrive('filepath', 'filename');
+// Returns: { fileId, url, webViewLink, filename, mimeType }
 ```
-
-## Why Separate?
-
-Skills are shared. Your setup is yours. Keeping them apart means you can update skills without losing your notes, and share skills without leaking your infrastructure.
 
 ---
 
-Add whatever helps you do your job. This is your cheat sheet.
+## bloomie-ghl
+**Location:** `/data/workspace/skills/ghl/`  
+**Purpose:** GoHighLevel CRM integration — contacts, conversations, messages, calendars, funnels, documents, email  
+**Auth:** Bearer token from `/data/secrets/ghl-token.txt`  
+**Docs:** See `/data/workspace/skills/ghl/GHL-SKILL-README.md` for full endpoint documentation  
+**Test:** `cd /data/workspace/skills/ghl && node test.js` (11/11 tests passing)
+
+### Modules
+| Module | Functions | Key Endpoint |
+|--------|-----------|-------------|
+| `contacts` | list, get, create, update, delete | `GET /contacts/` |
+| `conversations` | list, get, create | `GET /conversations/search` |
+| `messages` | send, getMessages, getHistory | `POST /conversations/messages` |
+| `calendars` | list, getFreeSlots, bookAppointment | `GET /calendars/` |
+| `funnels` | list, get, listPages, getPageDetails | `GET /funnels/funnel/list` |
+| `documents` | sendDocument, listTemplates, sendTemplate | `GET /emails/builder` |
+| `email` | send, listTemplates, create, update, listSchedules | `POST /conversations/messages` |
+
+### Quick Usage
+```javascript
+const ghl = require('/data/workspace/skills/ghl');
+
+const { contacts } = await ghl.contacts.listContacts();
+const { calendars } = await ghl.calendars.listCalendars();
+await ghl.messages.sendMessage({ contactId: 'id', type: 'SMS', message: 'Hello!' });
+```
+
+### Critical Notes
+- **Always include `Accept: application/json` header** (handled by config.js)
+- **Location ID:** `iGy4nrpDVU0W1jAvseL3`
+- **API Version:** `2021-07-28`
+
+---
+
+## Secrets Location
+| Secret | Path |
+|--------|------|
+| GHL API Token | `/data/secrets/ghl-token.txt` |
+| Brave Search API Key | `/data/secrets/brave-api-key.txt` |
+| GitHub PAT | `/data/secrets/github-pat.txt` |
+| Railway API Token | `/data/secrets/railway-api-token.txt` |

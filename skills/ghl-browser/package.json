@@ -1,0 +1,17 @@
+{
+  "name": "bloomie-ghl-browser",
+  "version": "1.0.0",
+  "description": "Bloomie GoHighLevel Browser Automation — Playwright-based UI control",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test-framework.js"
+  },
+  "dependencies": {
+    "imap": "^0.8.19",
+    "imap-simple": "^5.1.0",
+    "mailparser": "^3.9.3",
+    "playwright": "^1.40.0"
+  },
+  "author": "Bloomie",
+  "license": "MIT"
+}
