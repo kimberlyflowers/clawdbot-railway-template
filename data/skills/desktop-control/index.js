@@ -262,6 +262,72 @@ const desktop_status = async () => {
 };
 
 /**
+ * 🖱️ Double-click at coordinates
+ */
+const double_click = async (x, y) => {
+  try {
+    const sessionId = await getAvailableSession();
+    if (!sessionId) throw new Error('No desktop session');
+    
+    await apiRequest('POST', 'http://127.0.0.1:8080/api/desktop/command', {
+      sessionId,
+      action: 'click',
+      data: { x, y, button: 'double' }
+    });
+    
+    return {
+      user_message: `I double-clicked at position (${x}, ${y}) on your screen.`
+    };
+  } catch (error) {
+    return { error: error.message, user_message: error.message };
+  }
+};
+
+/**
+ * 🖱️ Right-click at coordinates
+ */
+const right_click = async (x, y) => {
+  try {
+    const sessionId = await getAvailableSession();
+    if (!sessionId) throw new Error('No desktop session');
+    
+    await apiRequest('POST', 'http://127.0.0.1:8080/api/desktop/command', {
+      sessionId,
+      action: 'click',
+      data: { x, y, button: 'right' }
+    });
+    
+    return {
+      user_message: `I right-clicked at position (${x}, ${y}) on your screen.`
+    };
+  } catch (error) {
+    return { error: error.message, user_message: error.message };
+  }
+};
+
+/**
+ * 📜 Scroll in a direction
+ */
+const scroll = async (direction = 'down', amount = 5) => {
+  try {
+    const sessionId = await getAvailableSession();
+    if (!sessionId) throw new Error('No desktop session');
+    
+    await apiRequest('POST', 'http://127.0.0.1:8080/api/desktop/command', {
+      sessionId,
+      action: 'scroll',
+      data: { direction, amount }
+    });
+    
+    return {
+      user_message: `I scrolled ${direction} by ${amount} units.`
+    };
+  } catch (error) {
+    return { error: error.message, user_message: error.message };
+  }
+};
+
+/**
  * 🛑 Release control
  */
 const release_desktop = async (message = 'Desktop session ended') => {
@@ -288,6 +354,9 @@ module.exports = {
   use_desktop,
   see_screen,
   click,
+  double_click,
+  right_click,
+  scroll,
   type,
   keys,
   desktop_status,

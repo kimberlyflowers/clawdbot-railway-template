@@ -1,0 +1,25 @@
+{
+  "name": "audience-intelligence",
+  "version": "1.0.0",
+  "description": "Psychographic audience discovery - find where your ideal customers congregate using brand insights",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [
+    "audience-intelligence",
+    "psychographic-targeting",
+    "community-discovery",
+    "keyword-research",
+    "persona-development",
+    "marketing-automation"
+  ],
+  "author": "Jaden",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kimberlyflowers/clawdbot-railway-template"
+  },
+  "devDependencies": {},
+  "dependencies": {}
+}

@@ -1,0 +1,26 @@
+{
+  "name": "marketing-copy-generator",
+  "version": "1.0.0",
+  "description": "Generate tailored marketing copy for any persona - emails, ads, landing pages using psychology-based frameworks",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [
+    "marketing-copy",
+    "email-sequences",
+    "ad-copy",
+    "landing-page",
+    "copywriting-formulas",
+    "persona-targeting",
+    "marketing-automation"
+  ],
+  "author": "Jaden",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kimberlyflowers/clawdbot-railway-template"
+  },
+  "devDependencies": {},
+  "dependencies": {}
+}

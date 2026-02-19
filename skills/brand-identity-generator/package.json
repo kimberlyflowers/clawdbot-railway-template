@@ -1,0 +1,25 @@
+{
+  "name": "brand-identity-generator",
+  "version": "1.0.0",
+  "description": "Psychology-based brand discovery using Jungian archetypes, villain analysis, and transformation narratives",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [
+    "brand-identity",
+    "psychology",
+    "interview-engine",
+    "narrative-generation",
+    "Jungian-archetypes",
+    "marketing-automation"
+  ],
+  "author": "Jaden",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kimberlyflowers/clawdbot-railway-template"
+  },
+  "devDependencies": {},
+  "dependencies": {}
+}
