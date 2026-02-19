@@ -1270,8 +1270,11 @@ app.post("/api/desktop/command", express.json(), async (req, res) => {
     }
 
     const commandPromise = sendDesktopCommand(sessionId, action, data || {});
-    const result = await commandPromise;
-    console.log('[API Response]', 'result type:', typeof result, 'has screenshot:', !!result?.screenshot, 'screenshot length:', result?.screenshot?.length);
+    const message = await commandPromise;
+    // message is { type: 'command_response', commandId, success, result: { screenshot, ... } }
+    // Extract just the result part
+    const result = message.result || message;
+    console.log('[API Response]', 'has screenshot:', !!result?.screenshot, 'screenshot length:', result?.screenshot?.length);
     res.json({ ok: true, result });
   } catch (error) {
     console.error('[API Error]', error.message);
