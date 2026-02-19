@@ -281,6 +281,7 @@ function requireSetupAuth(req, res, next) {
 // Desktop WebSocket server and connections storage
 const desktopWss = new WebSocketServer({ noServer: true });
 const desktopConnections = new Map();
+const pendingCommands = new Map(); // Store pending command promises
 
 // UUID v4 generator for compatibility
 const generateUUID = () => {
@@ -344,6 +345,14 @@ const handleDesktopConnection = (ws, request) => {
           break;
         case 'permission_revoked':
           await handlePermissionRevoked(ws, message, sessionId);
+          break;
+        case 'command_response':
+          // Resolve pending command promise
+          if (message.commandId && pendingCommands.has(message.commandId)) {
+            const pending = pendingCommands.get(message.commandId);
+            pendingCommands.delete(message.commandId);
+            pending.resolve(message);
+          }
           break;
         case 'heartbeat_response':
           // Keep connection alive
@@ -467,6 +476,26 @@ const sendDesktopCommand = (sessionId, action, data) => {
   }
 
   const commandId = generateUUID();
+  
+  // Create a promise that will be resolved when command_response arrives
+  const commandPromise = new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      pendingCommands.delete(commandId);
+      reject(new Error('Command timeout (30s)'));
+    }, 30000);
+    
+    pendingCommands.set(commandId, { 
+      resolve: (response) => {
+        clearTimeout(timeout);
+        resolve(response);
+      },
+      reject: (error) => {
+        clearTimeout(timeout);
+        reject(error);
+      }
+    });
+  });
+  
   if (connection.ws.readyState === WebSocket.OPEN) {
     connection.ws.send(JSON.stringify({
       type: 'command',
@@ -474,9 +503,12 @@ const sendDesktopCommand = (sessionId, action, data) => {
       data,
       commandId
     }));
+  } else {
+    pendingCommands.delete(commandId);
+    throw new Error('WebSocket not open');
   }
 
-  return commandId;
+  return commandPromise;
 };
 
 const getDesktopSessions = () => {
@@ -1226,15 +1258,16 @@ app.post("/api/desktop/permission", express.json(), (req, res) => {
   }
 });
 
-app.post("/api/desktop/command", express.json(), (req, res) => {
+app.post("/api/desktop/command", express.json(), async (req, res) => {
   try {
     const { sessionId, action, data } = req.body;
     if (!sessionId || !action) {
       return res.status(400).json({ ok: false, error: 'Missing sessionId or action' });
     }
 
-    const commandId = sendDesktopCommand(sessionId, action, data || {});
-    res.json({ ok: true, commandId });
+    const commandPromise = sendDesktopCommand(sessionId, action, data || {});
+    const result = await commandPromise;
+    res.json({ ok: true, result });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
   }
