@@ -67,18 +67,24 @@ function resolveGatewayToken() {
   );
   if (envTok) return envTok;
 
+  // TEMP FIX: Force fresh token generation to resolve device token mismatch
+  // Remove existing token file to ensure clean state
   const tokenPath = path.join(STATE_DIR, "gateway.token");
   try {
-    const existing = fs.readFileSync(tokenPath, "utf8").trim();
-    if (existing) return existing;
-  } catch {
-    // ignore
+    if (fs.existsSync(tokenPath)) {
+      fs.unlinkSync(tokenPath);
+      console.log("[gateway-fix] Removed existing token file to force regeneration");
+    }
+  } catch (e) {
+    console.log("[gateway-fix] Could not remove existing token file:", e.message);
   }
 
+  // Always generate fresh token
   const generated = crypto.randomBytes(32).toString("hex");
   try {
     fs.mkdirSync(STATE_DIR, { recursive: true });
     fs.writeFileSync(tokenPath, generated, { encoding: "utf8", mode: 0o600 });
+    console.log("[gateway-fix] Generated fresh gateway token");
   } catch {
     // best-effort
   }
