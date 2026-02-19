@@ -1,0 +1,20 @@
+{
+  "name": "audience-psychographer",
+  "version": "1.0.0",
+  "description": "Map psychology of ideal customer - fears, desires, worldview",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [
+    "psychology",
+    "audience",
+    "persona",
+    "messaging",
+    "marketing"
+  ],
+  "author": "Jaden",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}

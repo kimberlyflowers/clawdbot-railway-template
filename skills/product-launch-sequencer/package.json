@@ -1,0 +1,20 @@
+{
+  "name": "product-launch-sequencer",
+  "version": "1.0.0",
+  "description": "Plan and execute coordinated multi-channel product launches",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [
+    "launch",
+    "go-to-market",
+    "sequence",
+    "marketing",
+    "product"
+  ],
+  "author": "Jaden",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}

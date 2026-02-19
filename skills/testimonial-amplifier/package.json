@@ -1,0 +1,20 @@
+{
+  "name": "testimonial-amplifier",
+  "version": "1.0.0",
+  "description": "Extract, generate, and amplify customer testimonials across channels",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [
+    "testimonials",
+    "social-proof",
+    "marketing",
+    "customer-success",
+    "conversion"
+  ],
+  "author": "Jaden",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}

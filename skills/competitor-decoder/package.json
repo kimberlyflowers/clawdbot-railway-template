@@ -1,0 +1,20 @@
+{
+  "name": "competitor-decoder",
+  "version": "1.0.0",
+  "description": "Analyze competitors, find gaps, generate unique positioning",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [
+    "competitive-intelligence",
+    "positioning",
+    "market-analysis",
+    "strategy",
+    "sales"
+  ],
+  "author": "Jaden",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}
