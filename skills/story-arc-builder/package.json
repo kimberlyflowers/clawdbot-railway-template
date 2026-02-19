@@ -1,0 +1,27 @@
+{
+  "name": "story-arc-builder",
+  "version": "1.0.0",
+  "description": "Turns any product into a transformation narrative that converts",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js",
+    "start": "node index.js"
+  },
+  "keywords": [
+    "storytelling",
+    "narrative",
+    "transformation",
+    "copywriting",
+    "sales",
+    "conversion",
+    "hero's journey"
+  ],
+  "author": "Jaden",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.20.0"
+  },
+  "category": "content-creation",
+  "marketValue": "$150/month",
+  "status": "production-ready"
+}
