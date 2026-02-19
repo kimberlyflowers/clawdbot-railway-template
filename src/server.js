@@ -348,10 +348,14 @@ const handleDesktopConnection = (ws, request) => {
           break;
         case 'command_response':
           // Resolve pending command promise
+          console.log('[command_response received]', 'commandId:', message.commandId, 'has pending:', pendingCommands.has(message.commandId), 'pending count:', pendingCommands.size);
           if (message.commandId && pendingCommands.has(message.commandId)) {
             const pending = pendingCommands.get(message.commandId);
             pendingCommands.delete(message.commandId);
+            console.log('[command_response resolving]', 'commandId:', message.commandId, 'has screenshot:', !!message.result?.screenshot);
             pending.resolve(message);
+          } else {
+            console.log('[command_response NOT FOUND]', 'commandId:', message.commandId, 'all pending:', Array.from(pendingCommands.keys()));
           }
           break;
         case 'heartbeat_response':
