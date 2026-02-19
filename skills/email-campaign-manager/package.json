@@ -1,0 +1,24 @@
+{
+  "name": "email-campaign-manager",
+  "version": "1.0.0",
+  "description": "Enterprise email campaign automation with GHL integration",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js",
+    "start": "node index.js"
+  },
+  "keywords": [
+    "email",
+    "campaign",
+    "marketing",
+    "automation",
+    "ghl",
+    "himalaya",
+    "crm"
+  ],
+  "author": "Jaden",
+  "license": "MIT",
+  "dependencies": {
+    "nodemailer": "^6.9.0"
+  }
+}
