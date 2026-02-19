@@ -1,0 +1,12 @@
+{
+  "name": "fal-ai-image-edit",
+  "version": "1.0.0",
+  "description": "AI-powered image editing with fal.ai",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": ["fal", "image", "editing", "ai", "style-transfer", "inpainting"],
+  "author": "Jaden",
+  "license": "MIT"
+}

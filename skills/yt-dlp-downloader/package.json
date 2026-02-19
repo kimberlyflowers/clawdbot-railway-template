@@ -1,0 +1,15 @@
+{
+  "name": "yt-dlp-downloader",
+  "version": "1.0.0",
+  "description": "Media downloader for YouTube, TikTok, Twitter and 1000+ sites",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": ["youtube", "tiktok", "twitter", "instagram", "download", "media"],
+  "author": "Jaden",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
