@@ -24,6 +24,11 @@ else
     echo "[DEBUG] Script is not executable or doesn't exist. Skipping init."
 fi
 
-# Step 2: Start the wrapper server (agent boots straight to dashboard)
+# Step 2: Clean up any existing OpenClaw config to prevent token mismatch
+echo "🔧 Removing old config to prevent gateway token mismatch..."
+rm -f /data/.clawdbot/openclaw.json
+echo ""
+
+# Step 3: Start the wrapper server (agent boots straight to dashboard)
 echo "🌐 Starting Bloomie wrapper server..."
 exec node src/server.js
