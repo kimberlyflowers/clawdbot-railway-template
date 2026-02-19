@@ -481,8 +481,8 @@ const sendDesktopCommand = (sessionId, action, data) => {
   const commandPromise = new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
       pendingCommands.delete(commandId);
-      reject(new Error('Command timeout (30s)'));
-    }, 30000);
+      reject(new Error('Command timeout (5 minutes)'));
+    }, 300000);
     
     pendingCommands.set(commandId, { 
       resolve: (response) => {
