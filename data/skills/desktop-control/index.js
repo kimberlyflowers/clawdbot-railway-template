@@ -153,14 +153,17 @@ const see_screen = async () => {
     const sessionId = await getAvailableSession();
     if (!sessionId) throw new Error('No desktop session');
     
-    const result = await apiRequest('POST', 'http://127.0.0.1:8080/api/desktop/command', {
+    const response = await apiRequest('POST', 'http://127.0.0.1:8080/api/desktop/command', {
       sessionId,
       action: 'screenshot'
     });
     
+    // Extract screenshot from nested result object
+    const result = response.result || response;
+    
     return {
       user_message: 'I can see your screen.',
-      screenshot: result.data?.image || null,
+      screenshot: result.screenshot || null,
       commandId: result.commandId
     };
   } catch (error) {
