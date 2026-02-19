@@ -1,0 +1,20 @@
+{
+  "name": "trend-hijacker",
+  "version": "1.0.0",
+  "description": "Detect trending topics, analyze competitor angles, generate on-brand content",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [
+    "trends",
+    "content",
+    "marketing",
+    "social-media",
+    "viral"
+  ],
+  "author": "Jaden",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}

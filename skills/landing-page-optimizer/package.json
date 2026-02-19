@@ -1,0 +1,20 @@
+{
+  "name": "landing-page-optimizer",
+  "version": "1.0.0",
+  "description": "A/B test landing pages, headlines, CTAs with statistical significance",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [
+    "landing-page",
+    "a-b-testing",
+    "conversion",
+    "optimization",
+    "statistics"
+  ],
+  "author": "Jaden",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}

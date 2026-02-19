@@ -1,0 +1,21 @@
+{
+  "name": "jaden-checkpoint-engine",
+  "version": "1.0.0",
+  "description": "Auto-saves build progress, enables resume on context reset",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js",
+    "demo": "node demo.js"
+  },
+  "keywords": [
+    "checkpoint",
+    "build",
+    "agent",
+    "memory",
+    "context-reset"
+  ],
+  "author": "Jaden",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}
