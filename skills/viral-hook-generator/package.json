@@ -1,0 +1,30 @@
+{
+  "name": "viral-hook-generator",
+  "version": "1.0.0",
+  "description": "Analyzes trending content patterns and generates scroll-stopping hooks for any niche",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js",
+    "start": "node index.js"
+  },
+  "keywords": [
+    "viral",
+    "hooks",
+    "tiktok",
+    "content",
+    "marketing",
+    "engagement",
+    "reels",
+    "shorts"
+  ],
+  "author": "Jaden",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.20.0",
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12"
+  },
+  "category": "content-creation",
+  "marketValue": "$200/month",
+  "status": "production-ready"
+}
