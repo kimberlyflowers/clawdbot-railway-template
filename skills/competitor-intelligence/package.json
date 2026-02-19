@@ -1,0 +1,18 @@
+{
+  "name": "competitor-intelligence",
+  "version": "1.0.0",
+  "description": "Real-time competitor monitoring and strategic intelligence",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [
+    "competitor-analysis",
+    "market-intelligence",
+    "competitive-positioning",
+    "monitoring",
+    "benchmarking"
+  ],
+  "author": "Jaden",
+  "license": "MIT"
+}

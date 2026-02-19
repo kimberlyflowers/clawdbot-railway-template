@@ -1,0 +1,19 @@
+{
+  "name": "testimonial-generator",
+  "version": "1.0.0",
+  "description": "Auto-generate video testimonials from customer voice recordings",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [
+    "testimonials",
+    "video",
+    "customer-success",
+    "social-proof",
+    "marketing",
+    "automation"
+  ],
+  "author": "Jaden",
+  "license": "MIT"
+}
