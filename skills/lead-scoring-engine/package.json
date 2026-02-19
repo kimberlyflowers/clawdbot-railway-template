@@ -1,0 +1,20 @@
+{
+  "name": "lead-scoring-engine",
+  "version": "1.0.0",
+  "description": "Intelligent lead scoring and auto-segmentation with GHL integration",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js",
+    "start": "node index.js"
+  },
+  "keywords": [
+    "lead-scoring",
+    "crm",
+    "marketing-automation",
+    "ghl",
+    "segmentation",
+    "lead-qualification"
+  ],
+  "author": "Jaden",
+  "license": "MIT"
+}
