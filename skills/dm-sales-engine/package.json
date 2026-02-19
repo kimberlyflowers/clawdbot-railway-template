@@ -1,0 +1,28 @@
+{
+  "name": "dm-sales-engine",
+  "version": "1.0.0",
+  "description": "Personalized DM flows that convert conversations into customers",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js",
+    "start": "node index.js"
+  },
+  "keywords": [
+    "dm",
+    "sales",
+    "conversations",
+    "conversion",
+    "messaging",
+    "instagram",
+    "facebook",
+    "linkedin"
+  ],
+  "author": "Jaden",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.20.0"
+  },
+  "category": "engagement-growth",
+  "marketValue": "$300/month",
+  "status": "production-ready"
+}
