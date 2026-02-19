@@ -1,0 +1,22 @@
+{
+  "name": "social-media-scheduler",
+  "version": "1.0.0",
+  "description": "Enterprise social media scheduling and content distribution",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js",
+    "start": "node index.js"
+  },
+  "keywords": [
+    "social-media",
+    "scheduling",
+    "twitter",
+    "linkedin",
+    "instagram",
+    "tiktok",
+    "content-marketing",
+    "automation"
+  ],
+  "author": "Jaden",
+  "license": "MIT"
+}
