@@ -317,8 +317,18 @@ const handleDesktopConnection = (ws, request) => {
     try {
       let message;
 
-      // Check if it's binary data (screen frame)
-      if (data instanceof Buffer && data.length > 1000) {
+      // Parse JSON message (could be large command_response)
+      let isJsonMessage = false;
+      try {
+        message = JSON.parse(data.toString());
+        isJsonMessage = true;
+      } catch {
+        // Not JSON, treat as binary screen frame
+        isJsonMessage = false;
+      }
+
+      // If it's not JSON and large, it's a screen frame
+      if (!isJsonMessage && data instanceof Buffer && data.length > 1000) {
         // Handle screen frame
         const connection = desktopConnections.get(sessionId);
         if (connection && connection.isAuthenticated) {
@@ -329,8 +339,10 @@ const handleDesktopConnection = (ws, request) => {
         return;
       }
 
-      // Parse JSON message
-      message = JSON.parse(data.toString());
+      // If we couldn't parse as JSON and it wasn't a screen frame, error
+      if (!isJsonMessage) {
+        throw new Error('Received non-JSON data that is not a screen frame');
+      }
       console.log('Desktop message:', message.type);
 
       switch (message.type) {
