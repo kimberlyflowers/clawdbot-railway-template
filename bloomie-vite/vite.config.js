@@ -8,7 +8,9 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: '',
     rollupOptions: {
-      input: './index.html',
+      input: {
+        main: './src/index.jsx'
+      },
       output: {
         entryFileNames: `app-[hash].js`,
         chunkFileNames: `[name]-[hash].js`,
