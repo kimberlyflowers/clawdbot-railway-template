@@ -24,11 +24,6 @@ else
     echo "[DEBUG] Script is not executable or doesn't exist. Skipping init."
 fi
 
-# Step 2: Force complete token rotation and sync
-echo "🔧 Forcing OpenClaw token rotation and sync..."
-bash "$(dirname "$0")/fix-token.sh"
-echo ""
-
-# Step 3: Start the wrapper server (agent boots straight to dashboard)
+# Step 2: Start the wrapper server (agent boots straight to dashboard)
 echo "🌐 Starting Bloomie wrapper server..."
 exec node src/server.js
