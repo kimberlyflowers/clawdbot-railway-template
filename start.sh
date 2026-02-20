@@ -26,6 +26,7 @@ fi
 
 # Step 2: Fix OpenClaw config (remove invalid allowAny keys)
 echo "🔧 Cleaning up OpenClaw configuration..."
+find /data -name "openclaw.json" 2>/dev/null && echo "Found config"
 node -e "
 console.log('[CONFIG-FIX] Starting config cleanup...');
 const fs = require('fs');
