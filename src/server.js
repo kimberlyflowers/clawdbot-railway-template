@@ -1,6 +1,17 @@
+import fs from 'fs';
+try {
+  const p = '/data/.clawdbot/openclaw.json';
+  if (fs.existsSync(p)) {
+    const c = JSON.parse(fs.readFileSync(p));
+    if (c.agents?.list) {
+      c.agents.list.forEach(a => delete a.allowAny);
+      fs.writeFileSync(p, JSON.stringify(c, null, 2));
+    }
+  }
+} catch(e) {}
+
 import childProcess from "node:child_process";
 import crypto from "node:crypto";
-import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
