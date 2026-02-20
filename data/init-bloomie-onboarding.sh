@@ -15,12 +15,10 @@ echo "[INIT] STATE_DIR=$STATE_DIR"
 echo "[INIT] CONFIG_FILE=$CONFIG_FILE"
 echo "[INIT] INIT_LOCK=$INIT_LOCK"
 
-# Temporarily bypass lock to fix config
-# if [ -f "$INIT_LOCK" ]; then
-#     echo "[INIT] Init lock exists at $INIT_LOCK. Skipping initialization."
-#     exit 0
-# fi
-echo "[INIT] Lock check bypassed - regenerating config to fix validation errors"
+if [ -f "$INIT_LOCK" ]; then
+    echo "[INIT] Init lock exists at $INIT_LOCK. Skipping initialization."
+    exit 0
+fi
 
 echo "[INIT] No lock found. Proceeding with initialization."
 echo "🌸 Bloomie Onboarding Automation"

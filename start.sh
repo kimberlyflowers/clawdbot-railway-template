@@ -24,6 +24,21 @@ else
     echo "[DEBUG] Script is not executable or doesn't exist. Skipping init."
 fi
 
-# Step 2: Start the wrapper server (agent boots straight to dashboard)
+# Step 2: Fix OpenClaw config (remove invalid allowAny keys)
+echo "🔧 Cleaning up OpenClaw configuration..."
+node -e "
+const fs = require('fs');
+const p = '/data/.clawdbot/openclaw.json';
+if (fs.existsSync(p)) {
+  const c = JSON.parse(fs.readFileSync(p));
+  if (c.agents && c.agents.list) {
+    c.agents.list.forEach(a => delete a.allowAny);
+  }
+  fs.writeFileSync(p, JSON.stringify(c, null, 2));
+  console.log('Removed invalid allowAny keys');
+}
+"
+
+# Step 3: Start the wrapper server (agent boots straight to dashboard)
 echo "🌐 Starting Bloomie wrapper server..."
 exec node src/server.js
