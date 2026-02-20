@@ -62,13 +62,9 @@ RUN printf '%s\n' '#!/usr/bin/env bash' 'exec node /openclaw/dist/entry.js "$@"'
 
 COPY src ./src
 
-# Copy and build Bloomie dashboard for OpenClaw canvas
+# Copy and build Bloomie dashboard
 COPY bloomie-vite ./bloomie-vite
 RUN cd bloomie-vite && npm install && npm run build
-
-# Deploy to OpenClaw canvas directory
-RUN mkdir -p /data/.clawdbot/canvas
-RUN cp -r bloomie-vite/dist/* /data/.clawdbot/canvas/
 
 # The wrapper listens on this port.
 ENV OPENCLAW_PUBLIC_PORT=8080

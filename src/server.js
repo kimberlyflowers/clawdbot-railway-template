@@ -1305,11 +1305,22 @@ proxy.on("error", (err, _req, _res) => {
   console.error("[proxy]", err);
 });
 
+// Serve Bloomie dashboard at /bloomie route (before proxy catches it)
+app.get('/bloomie', (req, res) => {
+  res.sendFile(path.join(process.cwd(), 'bloomie-vite/dist/index.html'));
+});
+app.use('/bloomie', express.static(path.join(process.cwd(), 'bloomie-vite/dist')));
+
 app.use(async (req, res) => {
   // If not configured, force users to /setup for any non-setup routes.
-  // Exempt /setup, /desktop, and /api/desktop (desktop control doesn't need config)
-  if (!isConfigured() && !req.path.startsWith("/setup") && !req.path.startsWith("/desktop") && !req.path.startsWith("/api/desktop")) {
+  // Exempt /setup, /desktop, /api/desktop, and /bloomie (desktop control and dashboard don't need config)
+  if (!isConfigured() && !req.path.startsWith("/setup") && !req.path.startsWith("/desktop") && !req.path.startsWith("/api/desktop") && !req.path.startsWith("/bloomie")) {
     return res.redirect("/setup");
+  }
+
+  // Don't proxy /bloomie requests - they're handled by our static routes above
+  if (req.path.startsWith("/bloomie")) {
+    return; // Let the static file routes handle it
   }
 
   if (isConfigured()) {
