@@ -62,6 +62,10 @@ RUN printf '%s\n' '#!/usr/bin/env bash' 'exec node /openclaw/dist/entry.js "$@"'
 
 COPY src ./src
 
+# Copy and build Bloomie dashboard
+COPY bloomie-vite ./bloomie-vite
+RUN cd bloomie-vite && npm install && npm run build
+
 # The wrapper listens on this port.
 ENV OPENCLAW_PUBLIC_PORT=8080
 ENV PORT=8080
