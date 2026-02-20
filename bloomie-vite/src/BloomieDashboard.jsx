@@ -121,7 +121,7 @@ function useOpenClaw() {
 
   useEffect(() => {
     const gatewayUrl = 'https://openclaw-railway-template-production-b301.up.railway.app';
-    const token = 'a6521e779dbe6948d7265287d344055223b29addf9f9ded546ab9db8312af961';
+    const token = 'c58300e948054d58199177147ecf4cd22ca3ae4b1072bb524d8830d9e035334b';
     const conn = new OpenClawConnection(gatewayUrl, token);
 
     const unsubscribeMessages = conn.onMessage((data) => {
