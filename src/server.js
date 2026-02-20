@@ -1305,14 +1305,6 @@ proxy.on("error", (err, _req, _res) => {
   console.error("[proxy]", err);
 });
 
-// Serve Bloomie dashboard
-app.use('/bloomie', express.static(path.join(process.cwd(), 'bloomie-vite/dist')));
-
-// Serve Bloomie dashboard at root for the main interface
-app.get('/', (req, res) => {
-  res.sendFile(path.join(process.cwd(), 'bloomie-vite/index.html'));
-});
-
 app.use(async (req, res) => {
   // If not configured, force users to /setup for any non-setup routes.
   // Exempt /setup, /desktop, and /api/desktop (desktop control doesn't need config)
