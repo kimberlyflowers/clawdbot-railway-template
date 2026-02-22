@@ -45,13 +45,37 @@ class OpenClawConnection {
 
           // Handle connect.challenge events
           if (data.type === 'event' && data.event === 'connect.challenge') {
-            console.log('[OpenClaw] Received connection challenge, responding with auth...');
+            const nonce = data.payload?.nonce || '';
+            const signedAt = Date.now();
             this.send({
-              type: 'auth',
-              token: this.token,
-              clientType: 'web-dashboard',
-              platform: navigator.platform,
-              version: '1.0.0'
+              type: 'req',
+              id: 'connect-' + signedAt,
+              method: 'connect',
+              params: {
+                minProtocol: 3,
+                maxProtocol: 3,
+                client: {
+                  id: 'bloomie-dashboard',
+                  version: '1.0.0',
+                  platform: 'web',
+                  mode: 'operator'
+                },
+                role: 'operator',
+                scopes: ['operator.read', 'operator.write'],
+                caps: [],
+                commands: [],
+                permissions: {},
+                auth: { token: this.token },
+                locale: 'en-US',
+                userAgent: 'bloomie-dashboard/1.0.0',
+                device: {
+                  id: 'bloomie-dashboard-web',
+                  publicKey: '',
+                  signature: '',
+                  signedAt: signedAt,
+                  nonce: nonce
+                }
+              }
             });
             return;
           }
