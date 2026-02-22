@@ -37,6 +37,8 @@ if (fs.existsSync(p)) {
   console.log('Current wizard.lastRunMode:', c.wizard && c.wizard.lastRunMode);
   if (c.meta) delete c.meta.bloomieInitialized;
   if (c.wizard) c.wizard.lastRunMode = 'local';
+  if (!c.gateway) c.gateway = {};
+  c.gateway.trustedProxies = ['127.0.0.1', '100.64.0.0/10'];
   fs.writeFileSync(p, JSON.stringify(c, null, 2));
   console.log('Config fixed and saved');
 } else {
