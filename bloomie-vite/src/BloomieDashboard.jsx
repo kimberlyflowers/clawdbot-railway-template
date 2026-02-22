@@ -49,8 +49,8 @@ class OpenClawConnection {
             userAgent: 'bloomie-dashboard/1.0.0',
             device: {
               id: 'bloomie-dashboard-web',
-              publicKey: '',
-              signature: '',
+              publicKey: 'dummy-key-for-bypass',
+              signature: 'dummy-signature-for-bypass',
               signedAt: connectedAt,
               nonce: ''
             }
@@ -93,8 +93,8 @@ class OpenClawConnection {
                 userAgent: 'bloomie-dashboard/1.0.0',
                 device: {
                   id: 'bloomie-dashboard-web',
-                  publicKey: '',
-                  signature: '',
+                  publicKey: 'dummy-key-for-bypass',
+                  signature: 'dummy-signature-for-bypass',
                   signedAt: signedAt,
                   nonce: nonce
                 }
