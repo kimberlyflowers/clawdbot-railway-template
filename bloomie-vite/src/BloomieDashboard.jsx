@@ -52,7 +52,7 @@ class OpenClawConnection {
               publicKey: 'dummy-key-for-bypass',
               signature: 'dummy-signature-for-bypass',
               signedAt: connectedAt,
-              nonce: ''
+              nonce: 'dummy-nonce-for-bypass'
             }
           }
         });
@@ -96,7 +96,7 @@ class OpenClawConnection {
                   publicKey: 'dummy-key-for-bypass',
                   signature: 'dummy-signature-for-bypass',
                   signedAt: signedAt,
-                  nonce: nonce
+                  nonce: nonce || 'dummy-nonce-for-bypass'
                 }
               }
             });
