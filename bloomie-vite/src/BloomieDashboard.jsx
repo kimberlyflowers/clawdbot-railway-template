@@ -34,10 +34,10 @@ class OpenClawConnection {
             minProtocol: 3,
             maxProtocol: 3,
             client: {
-              id: 'bloomie-dashboard',
+              id: 'openclaw-control-ui',
               version: '1.0.0',
               platform: 'web',
-              mode: 'operator'
+              mode: 'webchat'
             },
             role: 'operator',
             scopes: ['operator.read', 'operator.write'],
