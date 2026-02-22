@@ -29,14 +29,20 @@ echo "🔧 Fixing OpenClaw config..."
 node -e "
 const fs = require('fs');
 const p = '/data/.clawdbot/openclaw.json';
+console.log('Config fix starting...');
 if (fs.existsSync(p)) {
+  console.log('Config file found');
   const c = JSON.parse(fs.readFileSync(p));
+  console.log('Current meta keys:', Object.keys(c.meta || {}));
+  console.log('Current wizard.lastRunMode:', c.wizard && c.wizard.lastRunMode);
   if (c.meta) delete c.meta.bloomieInitialized;
   if (c.wizard) c.wizard.lastRunMode = 'local';
   fs.writeFileSync(p, JSON.stringify(c, null, 2));
-  console.log('Config fixed');
+  console.log('Config fixed and saved');
+} else {
+  console.log('No config file found - nothing to fix');
 }
-"
+" || echo "Node script failed"
 echo ""
 
 # Step 2: Start the wrapper server (agent boots straight to dashboard)
