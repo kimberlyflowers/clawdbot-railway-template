@@ -118,7 +118,7 @@ if (fs.existsSync(_cpFix)) {
       delete _cfg.meta.bloomieInitialized;
       _changed = true;
     }
-    if (_cfg.wizard && _cfg.wizard.lastRunMode === 'automated') {
+    if (_cfg.wizard && _cfg.wizard.lastRunMode !== undefined && _cfg.wizard.lastRunMode !== 'local') {
       _cfg.wizard.lastRunMode = 'local';
       _changed = true;
     }
