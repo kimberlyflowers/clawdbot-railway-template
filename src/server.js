@@ -108,6 +108,29 @@ function configPath() {
   );
 }
 
+// Fix invalid config keys before gateway starts
+const _cpFix = configPath();
+if (fs.existsSync(_cpFix)) {
+  try {
+    const _cfg = JSON.parse(fs.readFileSync(_cpFix, 'utf8'));
+    let _changed = false;
+    if (_cfg.meta && _cfg.meta.bloomieInitialized !== undefined) {
+      delete _cfg.meta.bloomieInitialized;
+      _changed = true;
+    }
+    if (_cfg.wizard && _cfg.wizard.lastRunMode === 'automated') {
+      _cfg.wizard.lastRunMode = 'local';
+      _changed = true;
+    }
+    if (_changed) {
+      fs.writeFileSync(_cpFix, JSON.stringify(_cfg, null, 2));
+      console.log('[startup] Fixed invalid config keys');
+    }
+  } catch(e) {
+    console.log('[startup] Config fix skipped:', e.message);
+  }
+}
+
 function isConfigured() {
   try {
     return fs.existsSync(configPath());
