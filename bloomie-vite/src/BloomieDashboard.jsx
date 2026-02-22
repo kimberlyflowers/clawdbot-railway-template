@@ -30,6 +30,7 @@ class OpenClawConnection {
           type: 'req',
           id: 'connect-' + connectedAt,
           method: 'connect',
+          timestamp: new Date().toISOString(),
           params: {
             minProtocol: 3,
             maxProtocol: 3,
@@ -74,11 +75,12 @@ class OpenClawConnection {
               type: 'req',
               id: 'connect-' + signedAt,
               method: 'connect',
+              timestamp: new Date().toISOString(),
               params: {
                 minProtocol: 3,
                 maxProtocol: 3,
                 client: {
-                  id: 'bloomie-dashboard',
+                  id: 'openclaw-control-ui',
                   version: '1.0.0',
                   platform: 'web',
                   mode: 'operator'
