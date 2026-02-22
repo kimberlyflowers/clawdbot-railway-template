@@ -25,13 +25,36 @@ class OpenClawConnection {
       this.ws.onopen = () => {
         console.log('[OpenClaw] Connected to gateway');
         this.reconnectAttempts = 0;
-        // Use the same auth format as desktop app
+        const connectedAt = Date.now();
         this.send({
-          type: 'auth',
-          token: this.token,
-          clientType: 'web-dashboard',
-          platform: navigator.platform,
-          version: '1.0.0'
+          type: 'req',
+          id: 'connect-' + connectedAt,
+          method: 'connect',
+          params: {
+            minProtocol: 3,
+            maxProtocol: 3,
+            client: {
+              id: 'bloomie-dashboard',
+              version: '1.0.0',
+              platform: 'web',
+              mode: 'operator'
+            },
+            role: 'operator',
+            scopes: ['operator.read', 'operator.write'],
+            caps: [],
+            commands: [],
+            permissions: {},
+            auth: { token: this.token },
+            locale: 'en-US',
+            userAgent: 'bloomie-dashboard/1.0.0',
+            device: {
+              id: 'bloomie-dashboard-web',
+              publicKey: '',
+              signature: '',
+              signedAt: connectedAt,
+              nonce: ''
+            }
+          }
         });
         this.connectionHandlers.forEach(handler => {
           try { handler({ type: 'connected' }); } catch (e) { console.error(e); }
