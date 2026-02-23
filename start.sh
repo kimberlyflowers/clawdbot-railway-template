@@ -59,6 +59,13 @@ if (fs.existsSync(p)) {
 " || echo "Node script failed"
 echo ""
 
+# Step 1.6: Deploy Vera verification hook
+echo "🛡️ Deploying Vera verification hook..."
+cp hooks/vera/handler.ts /data/workspace/hooks/vera/handler.ts
+cp hooks/vera/HOOK.md /data/workspace/hooks/vera/HOOK.md
+echo "Vera hook deployed to /data/workspace/hooks/vera/"
+echo ""
+
 # Step 2: Start the wrapper server (agent boots straight to dashboard)
 echo "🌐 Starting Bloomie wrapper server..."
 exec node src/server.js

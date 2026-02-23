@@ -180,18 +180,25 @@ class MessageGate {
   }
 
   /**
-   * Handle verification failure - decide whether to block or release
+   * Handle verification failure - block message and inject feedback
    */
   handleVerificationFailure(messageId, result) {
     const gateInfo = this.gates.get(messageId);
     if (!gateInfo) return;
 
-    // For now, release with warning (could be made configurable)
-    console.warn(`[MessageGate] Verification failed for ${messageId}, releasing with warning`);
-    this.releaseMessage(messageId);
+    // DO NOT release the message - block it completely
+    console.warn(`[MessageGate] Verification failed for ${messageId}, blocking message and injecting feedback`);
 
-    // Notify external handler
-    this.onVerificationFailed(messageId, result);
+    gateInfo.state = GateState.FAILED;
+
+    // Notify external handler to inject feedback (into agent session)
+    // Don't release original message to client
+    this.onVerificationFailed(messageId, result, gateInfo.sessionKey);
+
+    // Clean up the gate
+    setTimeout(() => {
+      this.gates.delete(messageId);
+    }, 1000);
   }
 
   /**
@@ -326,4 +333,4 @@ class MessageGate {
   }
 }
 
-module.exports = { MessageGate, GateState, VERIFICATION_PATTERNS };
+export { MessageGate, GateState, VERIFICATION_PATTERNS };

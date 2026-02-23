@@ -8,6 +8,7 @@ import express from "express";
 import httpProxy from "http-proxy";
 import * as tar from "tar";
 import { WebSocket, WebSocketServer } from "ws";
+import { VeraIntegration } from "./vera-integration.js";
 
 /** @type {Set<string>} */
 const warnedDeprecatedEnv = new Set();
@@ -1322,10 +1323,32 @@ const proxy = httpProxy.createProxyServer({
   target: GATEWAY_TARGET,
   ws: true,
   xfwd: true,
+  selfHandleResponse: true,
 });
 
 proxy.on("error", (err, _req, _res) => {
   console.error("[proxy]", err);
+});
+
+const veraIntegration = new VeraIntegration({
+  gatewayTarget: GATEWAY_TARGET,
+  gatewayToken: OPENCLAW_GATEWAY_TOKEN,
+  gateOptions: { verificationTimeout: 90000, maxBufferSize: 100 },
+  veraOptions: { verificationTimeout: 60000, strictMode: false }
+});
+
+proxy.on('proxyRes', async (proxyRes, req, res) => {
+  try {
+    const result = await veraIntegration.processResponse(proxyRes, req, res);
+    if (result === null) {
+      res.writeHead(proxyRes.statusCode, proxyRes.headers);
+      proxyRes.pipe(res);
+    }
+  } catch (error) {
+    console.error('[server] Vera integration error:', error);
+    res.writeHead(proxyRes.statusCode, proxyRes.headers);
+    proxyRes.pipe(res);
+  }
 });
 
 // Serve Bloomie dashboard at /bloomie route (before proxy catches it)
@@ -1333,6 +1356,13 @@ app.get('/bloomie', (req, res) => {
   res.sendFile(path.join(process.cwd(), 'bloomie-vite/dist/index.html'));
 });
 app.use('/bloomie', express.static(path.join(process.cwd(), 'bloomie-vite/dist')));
+
+app.get('/vera/stats', veraIntegration.requireGatewayToken(), (req, res) => {
+  res.json(veraIntegration.getStats());
+});
+app.get('/vera/status', veraIntegration.requireGatewayToken(), (req, res) => {
+  res.json(veraIntegration.getStatus());
+});
 
 app.use(async (req, res) => {
   // If not configured, force users to /setup for any non-setup routes.
@@ -1408,5 +1438,8 @@ process.on("SIGTERM", () => {
   } catch {
     // ignore
   }
+
+  veraIntegration.shutdown();
+
   process.exit(0);
 });
