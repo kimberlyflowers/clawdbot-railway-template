@@ -21,6 +21,7 @@ RUN corepack enable
 WORKDIR /openclaw
 
 # Pin to a known ref (tag/branch). If it doesn't exist, fall back to main.
+# force-rebuild: 2026-02-22
 ARG OPENCLAW_GIT_REF=main
 RUN git clone --depth 1 --branch "${OPENCLAW_GIT_REF}" https://github.com/openclaw/openclaw.git .
 
