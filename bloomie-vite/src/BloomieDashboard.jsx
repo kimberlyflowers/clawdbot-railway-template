@@ -41,7 +41,7 @@ class OpenClawConnection {
               mode: 'webchat'
             },
             role: 'operator',
-            scopes: ['operator.admin', 'operator.approvals', 'operator.pairing'],
+            scopes: ['operator.read', 'operator.write', 'operator.admin'],
             caps: [],
             commands: [],
             permissions: {},
@@ -71,7 +71,7 @@ class OpenClawConnection {
           if (data.type === 'event' && data.event === 'connect.challenge') {
             const nonce = data.payload?.nonce || '';
             const signedAt = Date.now();
-            const frame = {
+            this.send({
               type: 'req',
               id: 'connect-' + signedAt,
               method: 'connect',
@@ -83,10 +83,10 @@ class OpenClawConnection {
                   id: 'openclaw-control-ui',
                   version: '1.0.0',
                   platform: 'web',
-                  mode: 'webchat'
+                  mode: 'operator'
                 },
                 role: 'operator',
-                scopes: ['operator.admin', 'operator.approvals', 'operator.pairing'],
+                scopes: ['operator.read', 'operator.write', 'operator.admin'],
                 caps: [],
                 commands: [],
                 permissions: {},
@@ -101,9 +101,7 @@ class OpenClawConnection {
                   nonce: nonce || 'dummy-nonce-for-bypass'
                 }
               }
-            };
-            console.log('CHALLENGE RESPONSE FRAME:', JSON.stringify(frame, null, 2));
-            this.send(frame);
+            });
             return;
           }
 
