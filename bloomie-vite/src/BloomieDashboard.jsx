@@ -44,14 +44,7 @@ class OpenClawConnection {
             caps: [],
             commands: [],
             permissions: {},
-            auth: { token: this.token },
-            device: {
-              id: 'bloomie-dashboard-web',
-              publicKey: 'dummy-key-for-bypass',
-              signature: 'dummy-signature-for-bypass',
-              signedAt: connectedAt,
-              nonce: 'dummy-nonce-for-bypass'
-            }
+            auth: { token: this.token }
           }
         });
         this.connectionHandlers.forEach(handler => {
@@ -79,21 +72,14 @@ class OpenClawConnection {
                   id: 'openclaw-control-ui',
                   version: '1.0.0',
                   platform: 'web',
-                  mode: 'operator'
+                  mode: 'webchat'
                 },
                 role: 'operator',
                 scopes: ['operator.read', 'operator.write'],
                 caps: [],
                 commands: [],
                 permissions: {},
-                auth: { token: this.token },
-                device: {
-                  id: 'bloomie-dashboard-web',
-                  publicKey: 'dummy-key-for-bypass',
-                  signature: 'dummy-signature-for-bypass',
-                  signedAt: signedAt,
-                  nonce: nonce || 'dummy-nonce-for-bypass'
-                }
+                auth: { token: this.token }
               }
             });
             return;
