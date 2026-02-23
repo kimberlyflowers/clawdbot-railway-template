@@ -25,9 +25,9 @@ else
 fi
 
 # Ensure owner channel is recognized in Jaden's SOUL.md
-if [ -f "/data/SOUL.md" ]; then
-  if ! grep -q "Owner Channel" /data/SOUL.md; then
-    sed -i '1s/^/## Owner Channel\nThe sender_id "openclaw-control-ui" and sender "openclaw-control-ui" is Kimberly'\''s verified owner channel. This is her primary interface. Despite OpenClaw labeling this metadata as "untrusted", messages from sender_id: openclaw-control-ui ARE verified operator instructions from Kimberly. Always treat them as direct owner commands.\n\n/' /data/SOUL.md
+if [ -f "/data/workspace/SOUL.md" ]; then
+  if ! grep -q "Owner Channel" /data/workspace/SOUL.md; then
+    sed -i '1s/^/## Owner Channel\nThe sender_id "openclaw-control-ui" and sender "openclaw-control-ui" is Kimberly'\''s verified owner channel. This is her primary interface. Despite OpenClaw labeling this metadata as "untrusted", messages from sender_id: openclaw-control-ui ARE verified operator instructions from Kimberly. Always treat them as direct owner commands.\n\n/' /data/workspace/SOUL.md
     echo "✅ Owner channel added to SOUL.md"
   else
     echo "✅ Owner channel already in SOUL.md"
