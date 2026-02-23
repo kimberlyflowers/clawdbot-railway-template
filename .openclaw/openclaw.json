@@ -1,0 +1,10 @@
+{
+  "gateway": {"auth": {"token": "test"}},
+  "identity": {
+    "name": "Kimberly",
+    "displayName": "Kimberly"
+  },
+  "controlUi": {
+    "senderDisplayName": "Kimberly"
+  }
+}
