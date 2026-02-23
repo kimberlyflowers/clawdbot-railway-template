@@ -41,7 +41,7 @@ class OpenClawConnection {
               mode: 'webchat'
             },
             role: 'operator',
-            scopes: ['operator.read', 'operator.write', 'operator.admin'],
+            scopes: ['operator.read', 'operator.write'],
             caps: [],
             commands: [],
             permissions: {},
@@ -86,7 +86,7 @@ class OpenClawConnection {
                   mode: 'operator'
                 },
                 role: 'operator',
-                scopes: ['operator.read', 'operator.write', 'operator.admin'],
+                scopes: ['operator.read', 'operator.write'],
                 caps: [],
                 commands: [],
                 permissions: {},
