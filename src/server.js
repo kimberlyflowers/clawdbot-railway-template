@@ -8,6 +8,9 @@ import express from "express";
 import httpProxy from "http-proxy";
 import * as tar from "tar";
 import { WebSocket, WebSocketServer } from "ws";
+import { MessageGate } from './message-gating.js';
+import { VeraVerification } from './vera-verification.js';
+import { BloomDashboard } from './bloom-dashboard.js';
 
 /** @type {Set<string>} */
 const warnedDeprecatedEnv = new Set();
@@ -565,6 +568,38 @@ global.desktopAPI = {
   sendDesktopCommand,
   getDesktopSessions
 };
+
+// Initialize BLOOM verification system
+const veraVerification = new VeraVerification({
+  verificationTimeout: 60000,
+  strictMode: false
+});
+
+const messageGate = new MessageGate({
+  verificationTimeout: 90000,
+  onVerificationNeeded: (messageId, content) => veraVerification.verifyMessage(messageId, content),
+  onMessageReleased: (gateInfo) => releaseBLOOMMessage(gateInfo),
+  onVerificationFailed: (messageId, result) => console.warn(`[BLOOM] Verification failed: ${messageId}`)
+});
+
+const bloomDashboard = new BloomDashboard(messageGate, veraVerification);
+
+// Handle verified message release
+function releaseBLOOMMessage(gateInfo) {
+  console.log(`[BLOOM] Releasing verified message: ${gateInfo.messageId}`);
+
+  if (gateInfo.type === 'http') {
+    // Release HTTP response
+    if (gateInfo.res && !gateInfo.res.headersSent) {
+      gateInfo.res.send(gateInfo.content);
+    }
+  } else if (gateInfo.type === 'websocket') {
+    // Release WebSocket message
+    if (gateInfo.socket && gateInfo.socket.readyState === 1) {
+      gateInfo.socket.send(gateInfo.content);
+    }
+  }
+}
 
 const app = express();
 app.disable("x-powered-by");
@@ -1328,21 +1363,57 @@ proxy.on("error", (err, _req, _res) => {
   console.error("[proxy]", err);
 });
 
+// BLOOM: Handle proxy responses for message verification
+proxy.on('proxyRes', (proxyRes, req, res) => {
+  let body = '';
+
+  proxyRes.on('data', (chunk) => {
+    body += chunk;
+  });
+
+  proxyRes.on('end', () => {
+    // Copy response headers
+    res.status(proxyRes.statusCode);
+    Object.keys(proxyRes.headers).forEach(key => {
+      if (key.toLowerCase() !== 'content-length') {
+        res.set(key, proxyRes.headers[key]);
+      }
+    });
+
+    // Check if message needs verification
+    const messageId = messageGate.bufferMessage({
+      content: body,
+      type: 'http',
+      req,
+      res
+    });
+
+    if (!messageId) {
+      // No verification needed, send immediately
+      res.send(body);
+    }
+    // Otherwise message is buffered and will be released after verification
+  });
+});
+
 // Serve Bloomie dashboard at /bloomie route (before proxy catches it)
 app.get('/bloomie', (req, res) => {
   res.sendFile(path.join(process.cwd(), 'bloomie-vite/dist/index.html'));
 });
 app.use('/bloomie', express.static(path.join(process.cwd(), 'bloomie-vite/dist')));
 
+// Setup BLOOM dashboard routes
+bloomDashboard.setupRoutes(app);
+
 app.use(async (req, res) => {
   // If not configured, force users to /setup for any non-setup routes.
-  // Exempt /setup, /desktop, /api/desktop, and /bloomie (desktop control and dashboard don't need config)
-  if (!isConfigured() && !req.path.startsWith("/setup") && !req.path.startsWith("/desktop") && !req.path.startsWith("/api/desktop") && !req.path.startsWith("/bloomie")) {
+  // Exempt /setup, /desktop, /api/desktop, /bloomie, and /bloom (desktop control and dashboards don't need config)
+  if (!isConfigured() && !req.path.startsWith("/setup") && !req.path.startsWith("/desktop") && !req.path.startsWith("/api/desktop") && !req.path.startsWith("/bloomie") && !req.path.startsWith("/bloom")) {
     return res.redirect("/setup");
   }
 
-  // Don't proxy /bloomie requests - they're handled by our static routes above
-  if (req.path.startsWith("/bloomie")) {
+  // Don't proxy /bloomie or /bloom requests - they're handled by our static routes above
+  if (req.path.startsWith("/bloomie") || req.path.startsWith("/bloom")) {
     return; // Let the static file routes handle it
   }
 
@@ -1354,7 +1425,11 @@ app.use(async (req, res) => {
     }
   }
 
-  return proxy.web(req, res, { target: GATEWAY_TARGET });
+  // BLOOM: Intercept proxy responses for verification
+  return proxy.web(req, res, {
+    target: GATEWAY_TARGET,
+    selfHandleResponse: true
+  });
 });
 
 const server = app.listen(PORT, "0.0.0.0", () => {
