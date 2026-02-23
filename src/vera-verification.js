@@ -6,8 +6,8 @@
  * Used by message-gating.js to verify buffered messages.
  */
 
-import fs from 'node:fs';
-import path from 'node:path';
+const fs = require('node:fs');
+const path = require('node:path');
 
 /**
  * Verification methods for different claim types
@@ -402,4 +402,4 @@ class VeraVerification {
   }
 }
 
-export { VeraVerification, VerificationMethods, VERIFICATION_CLAIM_PATTERNS };
+module.exports = { VeraVerification, VerificationMethods, VERIFICATION_CLAIM_PATTERNS };

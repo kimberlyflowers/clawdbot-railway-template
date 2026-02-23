@@ -6,8 +6,8 @@
  * Provides real-time visibility into message gating and verification.
  */
 
-import fs from 'node:fs';
-import path from 'node:path';
+const fs = require('node:fs');
+const path = require('node:path');
 
 /**
  * BLOOM Dashboard serving and API logic
@@ -822,8 +822,4 @@ main {
   }
 }
 
-export { BloomDashboard };`;
-  }
-}
-
-export { BloomDashboard };
+module.exports = { BloomDashboard };

@@ -6,7 +6,7 @@
  * Integrates with proxy to provide hard enforcement without bypass.
  */
 
-import crypto from 'node:crypto';
+const crypto = require('node:crypto');
 
 /**
  * Message types that require verification
@@ -326,4 +326,4 @@ class MessageGate {
   }
 }
 
-export { MessageGate, GateState, VERIFICATION_PATTERNS };
+module.exports = { MessageGate, GateState, VERIFICATION_PATTERNS };
