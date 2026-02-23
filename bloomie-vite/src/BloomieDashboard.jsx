@@ -30,7 +30,6 @@ class OpenClawConnection {
           type: 'req',
           id: 'connect-' + connectedAt,
           method: 'connect',
-          timestamp: new Date().toISOString(),
           params: {
             minProtocol: 3,
             maxProtocol: 3,
@@ -46,8 +45,6 @@ class OpenClawConnection {
             commands: [],
             permissions: {},
             auth: { token: this.token },
-            locale: 'en-US',
-            userAgent: 'bloomie-dashboard/1.0.0',
             device: {
               id: 'bloomie-dashboard-web',
               publicKey: 'dummy-key-for-bypass',
@@ -75,7 +72,6 @@ class OpenClawConnection {
               type: 'req',
               id: 'connect-' + signedAt,
               method: 'connect',
-              timestamp: new Date().toISOString(),
               params: {
                 minProtocol: 3,
                 maxProtocol: 3,
@@ -91,8 +87,6 @@ class OpenClawConnection {
                 commands: [],
                 permissions: {},
                 auth: { token: this.token },
-                locale: 'en-US',
-                userAgent: 'bloomie-dashboard/1.0.0',
                 device: {
                   id: 'bloomie-dashboard-web',
                   publicKey: 'dummy-key-for-bypass',
