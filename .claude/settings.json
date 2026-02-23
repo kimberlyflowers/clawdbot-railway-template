@@ -1,0 +1,43 @@
+{
+  "plugins": ["bloom/task-router.ts", "bloom/BloomTodoWrite.ts"],
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [{
+          "type": "command",
+          "command": "python3 $CLAUDE_PROJECT_DIR/bloom/directive-classifier.py"
+        }]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "exit_plan_mode",
+        "hooks": [{
+          "type": "command",
+          "command": "python3 bloom/vera-plan-scorer.py"
+        }]
+      },
+      {
+        "matcher": "TodoWrite",
+        "hooks": [{
+          "type": "command",
+          "command": "python3 bloom/vera-hook.py"
+        }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "TodoWrite",
+        "hooks": [{
+          "type": "command",
+          "command": "python3 bloom/vera-post-hook.py"
+        }]
+      }
+    ]
+  },
+  "agents": {
+    "jaden": {
+      "appendSystemPrompt": "bloom/auto-plan-prompt.txt"
+    }
+  }
+}

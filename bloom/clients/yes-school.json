@@ -1,0 +1,20 @@
+{
+  "client_id": "yes-school",
+  "client_name": "Youth Empowerment School",
+  "reply_channel_match": true,
+  "preferences": {
+    "send_email": {
+      "primary": { "tool": "gmail", "label": "Gmail" },
+      "fallbacks": [],
+      "notes": "Subject lines must be clear and formal. Read From: header on inbound emails — reply via source domain."
+    },
+    "store_document": {
+      "primary": { "tool": "google-drive", "label": "Google Drive" },
+      "fallbacks": []
+    },
+    "schedule_meeting": {
+      "primary": { "tool": "calendar", "label": "Google Calendar" },
+      "fallbacks": [{ "tool": "calendly", "label": "Calendly" }]
+    }
+  }
+}

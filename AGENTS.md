@@ -207,6 +207,42 @@ Think of it like a human reviewing their journal and updating their mental model
 
 The goal: Be helpful without being annoying. Check in a few times a day, do useful background work, but respect quiet time.
 
+## Task Execution Protocol
+
+After your plan is scored ≥80, create a TodoWrite task list.
+Every external action step MUST include metadata:
+
+```json
+{
+  "content": "Send board meeting materials email to Bishop Flowers",
+  "status": "pending",
+  "priority": "high",
+  "metadata": {
+    "verification_method": "read_confirmation",
+    "verification_evidence": "",
+    "bloom_skill": "gmail",
+    "bloom_outcome": "send_email"
+  }
+}
+```
+
+verification_method values:
+- read_confirmation → read back what you just wrote or sent
+- delivery_confirmation → confirm receipt/delivery in the system
+- status_check → query the system for current status
+- none → for non-external steps (drafting, reading)
+
+When marking completed, fill verification_evidence completely:
+"Opened Gmail sent folder. Email to bishop@yesschoolsa.org confirmed
+at 9:14am with subject 'Board Meeting Materials Ready'."
+
+**REPLY CHANNEL RULE (non-negotiable):**
+Read the From: header of inbound messages. Match outbound tool to source domain.
+Yahoo inbound → reply via Yahoo. Gmail inbound → reply via Gmail.
+
+You deliver the completion message. Speak naturally as their agent.
+Do not reference Vera, scoring systems, or internal checks.
+
 ## Make It Yours
 
 This is a starting point. Add your own conventions, style, and rules as you figure out what works.
