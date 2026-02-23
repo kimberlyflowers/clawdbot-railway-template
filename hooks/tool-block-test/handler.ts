@@ -1,29 +1,26 @@
-const handler = async (event, api) => {
-  console.log("[tool-block-test] Handler loaded, registering before_tool_call");
+const handler = async (event) => {
+  // Test if any hook system is working at all
+  console.log("[tool-block-test] Hook triggered with event:", event?.type);
 
-  // Register for before_tool_call events using API method (like ClawBands)
-  if (api && api.on) {
-    api.on('before_tool_call', async (toolEvent) => {
-      console.log("[tool-block-test] before_tool_call triggered:", toolEvent.toolName);
+  if (event?.type === "message:received") {
+    console.log("[tool-block-test] 🟢 MESSAGE HOOK WORKING - got message:", event.content?.substring(0, 50));
 
-      // Block the Read tool specifically for clear testing
-      if (toolEvent.toolName === "Read") {
-        console.log("[tool-block-test] BLOCKING Read tool execution - TEST HOOK ACTIVE");
-
-        return {
-          block: true,
-          blockReason: "🚫 TEST HOOK: Read tool blocked to test if before_tool_call enforcement works in Railway OpenClaw deployment. If you see this message, structural enforcement is POSSIBLE."
-        };
-      }
-
-      // Allow all other tools
-      return {};
-    });
+    // Add a visible response to confirm hook is working
+    if (event.messages && Array.isArray(event.messages)) {
+      event.messages.push("🟢 TEST HOOK CONFIRMED WORKING: message:received event detected");
+    }
   }
 
-  // Also handle regular message events for fallback
-  if (event?.type === "message:received") {
-    console.log("[tool-block-test] Message received, hook is active");
+  if (event?.type === "before_tool_call") {
+    console.log("[tool-block-test] 🔥 before_tool_call triggered for tool:", event.toolName || event.tool);
+
+    // Block Read tool if this event type exists
+    if ((event.toolName === "Read" || event.tool === "Read")) {
+      return {
+        block: true,
+        blockReason: "🚫 STRUCTURAL ENFORCEMENT CONFIRMED: before_tool_call hook successfully blocked Read tool"
+      };
+    }
   }
 
   return {};
