@@ -71,7 +71,7 @@ class OpenClawConnection {
           if (data.type === 'event' && data.event === 'connect.challenge') {
             const nonce = data.payload?.nonce || '';
             const signedAt = Date.now();
-            this.send({
+            const frame = {
               type: 'req',
               id: 'connect-' + signedAt,
               method: 'connect',
@@ -101,7 +101,9 @@ class OpenClawConnection {
                   nonce: nonce || 'dummy-nonce-for-bypass'
                 }
               }
-            });
+            };
+            console.log('CHALLENGE RESPONSE FRAME:', JSON.stringify(frame, null, 2));
+            this.send(frame);
             return;
           }
 
