@@ -41,7 +41,7 @@ class OpenClawConnection {
               mode: 'webchat'
             },
             role: 'operator',
-            scopes: ['operator.read', 'operator.write', 'operator.admin'],
+            scopes: ['operator.admin', 'operator.approvals', 'operator.pairing'],
             caps: [],
             commands: [],
             permissions: {},
@@ -83,10 +83,10 @@ class OpenClawConnection {
                   id: 'openclaw-control-ui',
                   version: '1.0.0',
                   platform: 'web',
-                  mode: 'operator'
+                  mode: 'webchat'
                 },
                 role: 'operator',
-                scopes: ['operator.read', 'operator.write', 'operator.admin'],
+                scopes: ['operator.admin', 'operator.approvals', 'operator.pairing'],
                 caps: [],
                 commands: [],
                 permissions: {},
