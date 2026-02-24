@@ -62,8 +62,8 @@ echo ""
 # Step 1.6: Deploy Vera verification hook
 echo "🛡️ Deploying Vera verification hook..."
 mkdir -p /data/workspace/hooks/vera
-cp hooks/vera/handler.ts /data/workspace/hooks/vera/handler.ts
-cp hooks/vera/HOOK.md /data/workspace/hooks/vera/HOOK.md
+cp /app/hooks/vera/handler.ts /data/workspace/hooks/vera/handler.ts 2>/dev/null || echo "⚠️ handler.ts not found, skipping"
+cp /app/hooks/vera/HOOK.md /data/workspace/hooks/vera/HOOK.md 2>/dev/null || echo "⚠️ HOOK.md not found, skipping"
 echo "Vera hook deployed to /data/workspace/hooks/vera/"
 echo ""
 

@@ -61,6 +61,7 @@ RUN printf '%s\n' '#!/usr/bin/env bash' 'exec node /openclaw/dist/entry.js "$@"'
   && chmod +x /usr/local/bin/openclaw
 
 COPY src ./src
+COPY hooks ./hooks
 
 # Copy and build Bloomie dashboard (conditional - only if directory exists)
 COPY bloomie-vite ./bloomie-vite
