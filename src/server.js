@@ -1323,7 +1323,6 @@ const proxy = httpProxy.createProxyServer({
   target: GATEWAY_TARGET,
   ws: true,
   xfwd: true,
-  selfHandleResponse: true,
 });
 
 proxy.on("error", (err, _req, _res) => {
