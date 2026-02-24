@@ -1330,26 +1330,28 @@ proxy.on("error", (err, _req, _res) => {
   console.error("[proxy]", err);
 });
 
-const veraIntegration = new VeraIntegration({
-  gatewayTarget: GATEWAY_TARGET,
-  gatewayToken: OPENCLAW_GATEWAY_TOKEN,
-  gateOptions: { verificationTimeout: 90000, maxBufferSize: 100 },
-  veraOptions: { verificationTimeout: 60000, strictMode: false }
-});
+// TEMPORARILY DISABLED FOR DEBUGGING
+// const veraIntegration = new VeraIntegration({
+//   gatewayTarget: GATEWAY_TARGET,
+//   gatewayToken: OPENCLAW_GATEWAY_TOKEN,
+//   gateOptions: { verificationTimeout: 90000, maxBufferSize: 100 },
+//   veraOptions: { verificationTimeout: 60000, strictMode: false }
+// });
 
-proxy.on('proxyRes', async (proxyRes, req, res) => {
-  try {
-    const result = await veraIntegration.processResponse(proxyRes, req, res);
-    if (result === null) {
-      res.writeHead(proxyRes.statusCode, proxyRes.headers);
-      proxyRes.pipe(res);
-    }
-  } catch (error) {
-    console.error('[server] Vera integration error:', error);
-    res.writeHead(proxyRes.statusCode, proxyRes.headers);
-    proxyRes.pipe(res);
-  }
-});
+// TEMPORARILY DISABLED FOR DEBUGGING
+// proxy.on('proxyRes', async (proxyRes, req, res) => {
+//   try {
+//     const result = await veraIntegration.processResponse(proxyRes, req, res);
+//     if (result === null) {
+//       res.writeHead(proxyRes.statusCode, proxyRes.headers);
+//       proxyRes.pipe(res);
+//     }
+//   } catch (error) {
+//     console.error('[server] Vera integration error:', error);
+//     res.writeHead(proxyRes.statusCode, proxyRes.headers);
+//     proxyRes.pipe(res);
+//   }
+// });
 
 // Serve Bloomie dashboard at /bloomie route (before proxy catches it)
 app.get('/bloomie', (req, res) => {
@@ -1357,12 +1359,13 @@ app.get('/bloomie', (req, res) => {
 });
 app.use('/bloomie', express.static(path.join(process.cwd(), 'bloomie-vite/dist')));
 
-app.get('/vera/stats', veraIntegration.requireGatewayToken(), (req, res) => {
-  res.json(veraIntegration.getStats());
-});
-app.get('/vera/status', veraIntegration.requireGatewayToken(), (req, res) => {
-  res.json(veraIntegration.getStatus());
-});
+// TEMPORARILY DISABLED FOR DEBUGGING
+// app.get('/vera/stats', veraIntegration.requireGatewayToken(), (req, res) => {
+//   res.json(veraIntegration.getStats());
+// });
+// app.get('/vera/status', veraIntegration.requireGatewayToken(), (req, res) => {
+//   res.json(veraIntegration.getStatus());
+// });
 
 app.use(async (req, res) => {
   // If not configured, force users to /setup for any non-setup routes.
@@ -1439,7 +1442,8 @@ process.on("SIGTERM", () => {
     // ignore
   }
 
-  veraIntegration.shutdown();
+  // TEMPORARILY DISABLED FOR DEBUGGING
+  // veraIntegration.shutdown();
 
   process.exit(0);
 });
