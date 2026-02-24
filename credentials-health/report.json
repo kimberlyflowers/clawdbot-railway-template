@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-02-21T21:14:07.533Z",
+  "checks": [
+    {
+      "name": "drive",
+      "status": "OK",
+      "days_since_save": 8,
+      "message": "Drive token valid"
+    },
+    {
+      "name": "ghl",
+      "status": "OK",
+      "message": "GHL token present"
+    },
+    {
+      "name": "supabase",
+      "status": "OK",
+      "message": "Database connection OK",
+      "connected_at": "2026-02-21T21:14:07.532Z"
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "ok": 3,
+    "warnings": 0,
+    "errors": 0
+  }
+}
