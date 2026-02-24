@@ -6,7 +6,7 @@
  * Integrates with proxy to provide hard enforcement without bypass.
  */
 
-const crypto = require('node:crypto');
+import crypto from 'node:crypto';
 
 /**
  * Message types that require verification
