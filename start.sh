@@ -51,13 +51,47 @@ if (fs.existsSync(p)) {
   c.gateway.trustedProxies = ['127.0.0.1', '100.64.0.0/10'];
   if (!c.gateway.controlUi) c.gateway.controlUi = {};
   c.gateway.controlUi.allowInsecureAuth = true;
-  c.gateway.controlUi.allowedOrigins = ['*'];
   fs.writeFileSync(p, JSON.stringify(c, null, 2));
   console.log('Config fixed and saved');
 } else {
   console.log('No config file found - nothing to fix');
 }
 " || echo "Node script failed"
+
+# Step 1.5b: Ensure CORS settings are applied every startup
+echo "🌐 Ensuring CORS settings..."
+node -e "
+const fs = require('fs');
+const p = '/data/.clawdbot/openclaw.json';
+const maxRetries = 10;
+const retryDelay = 1000;
+
+async function ensureCORS(retries = 0) {
+  if (fs.existsSync(p)) {
+    try {
+      const c = JSON.parse(fs.readFileSync(p));
+      if (!c.gateway) c.gateway = {};
+      if (!c.gateway.controlUi) c.gateway.controlUi = {};
+      c.gateway.controlUi.allowedOrigins = ['*'];
+      fs.writeFileSync(p, JSON.stringify(c, null, 2));
+      console.log('CORS allowedOrigins applied successfully');
+      return;
+    } catch (error) {
+      console.log('Error applying CORS settings:', error.message);
+    }
+  }
+
+  if (retries < maxRetries) {
+    console.log(\`Config file not ready, retrying in 1s... (attempt \${retries + 1}/\${maxRetries})\`);
+    await new Promise(resolve => setTimeout(resolve, retryDelay));
+    return ensureCORS(retries + 1);
+  } else {
+    console.log('Max retries reached, CORS settings may not be applied');
+  }
+}
+
+ensureCORS();
+" || echo "CORS script failed"
 echo ""
 
 # Step 1.6: Deploy Vera verification hook
