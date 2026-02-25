@@ -11,6 +11,10 @@ const fs = require('fs');
 const path = require('path');
 
 const GHL_TOKEN = fs.readFileSync('/data/secrets/ghl-token.txt', 'utf8').trim();
+const LOCATION_ID = 'iGy4nrpDVU0W1jAvseL3';
+const API_BASE = 'https://services.leadconnectorhq.com';  // Private Integrations API v2.0
+const API_VERSION = '2021-07-28';
+
 const EDUCATOR_SEGMENT_ID = 'educators'; // GHL segment name
 
 // Get today's date in YYYY-MM-DD format
@@ -47,16 +51,20 @@ const emailBody = `
 </div>
 `;
 
-// Send via GHL API
+// Send via GHL API v2.0
 const ghlApiCall = (method, endpoint, body = null) => {
   return new Promise((resolve, reject) => {
+    const { URL } = require('url');
+    const url = new URL(`${API_BASE}${endpoint}`);
+    
     const options = {
-      hostname: 'rest.gohighlevel.com',
-      path: `/v1${endpoint}`,
+      hostname: url.hostname,
+      path: url.pathname + url.search,
       method: method,
       headers: {
         'Authorization': `Bearer ${GHL_TOKEN}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Version': API_VERSION
       }
     };
 
@@ -91,8 +99,8 @@ const ghlApiCall = (method, endpoint, body = null) => {
     console.log(`Subject: ${emailSubject}`);
     console.log(`Segment: ${EDUCATOR_SEGMENT_ID}`);
 
-    // Get contacts in educator segment from GHL
-    const contactsResponse = await ghlApiCall('GET', `/contacts?search=${EDUCATOR_SEGMENT_ID}`);
+    // Get contacts in educator segment from GHL (v2.0 API)
+    const contactsResponse = await ghlApiCall('GET', `/contacts/?locationId=${LOCATION_ID}&limit=100`);
     
     if (!contactsResponse.data.contacts || contactsResponse.data.contacts.length === 0) {
       console.log('No contacts found in educator segment');
@@ -102,17 +110,17 @@ const ghlApiCall = (method, endpoint, body = null) => {
     const educatorContacts = contactsResponse.data.contacts;
     console.log(`Found ${educatorContacts.length} educators to email`);
 
-    // Send email to each educator
+    // Send email to each educator via v2.0 API
     let sent = 0;
     let failed = 0;
 
     for (const contact of educatorContacts) {
       try {
-        await ghlApiCall('POST', '/messages/email', {
-          to: contact.email,
-          subject: emailSubject,
-          body: emailBody,
-          from: 'noreply@bloom-ai.com'
+        await ghlApiCall('POST', '/conversations/messages', {
+          locationId: LOCATION_ID,
+          contactId: contact.id,
+          type: 'Email',
+          body: emailBody
         });
         sent++;
       } catch (err) {

@@ -2,10 +2,20 @@ const fs = require('fs');
 const https = require('https');
 const { URL } = require('url');
 
+// ==================== GHL CREDENTIALS ====================
+// LOCATION_ID: iGy4nrpDVU0W1jAvseL3 (Kimberly's account - DO NOT CHANGE)
+// API_TOKEN: stored in /data/secrets/ghl-token.txt (pit-a2f307f4-08b6-4c00-a2da-a1ce03b3a927)
+// API_BASE: https://services.leadconnectorhq.com (Private Integrations API v2.0)
+// API_VERSION: 2021-07-28 (required header)
+// These are persistent. Do not ask for them again.
+// JADEN validated this setup on 2026-02-25 02:52 UTC
+// ========================================================
+
 // Load API token
 const GHL_TOKEN = fs.readFileSync('/data/secrets/ghl-token.txt', 'utf8').trim();
-const API_BASE = 'https://rest.gohighlevel.com';
-const LOCATION_ID = 'iGy4nrpDVU0W1jAvseL3';
+const API_BASE = 'https://services.leadconnectorhq.com';  // v2.0 API (NOT rest.gohighlevel.com)
+const API_VERSION = '2021-07-28';  // REQUIRED header for v2.0
+const LOCATION_ID = 'iGy4nrpDVU0W1jAvseL3';  // Kimberly's GHL Location ID - PERSISTENT
 
 /**
  * Make HTTP request to GHL API
