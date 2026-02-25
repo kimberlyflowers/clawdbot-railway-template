@@ -51,6 +51,7 @@ if (fs.existsSync(p)) {
   c.gateway.trustedProxies = ['127.0.0.1', '100.64.0.0/10'];
   if (!c.gateway.controlUi) c.gateway.controlUi = {};
   c.gateway.controlUi.allowInsecureAuth = true;
+  c.gateway.controlUi.dangerouslyDisableDeviceAuth = true;
   fs.writeFileSync(p, JSON.stringify(c, null, 2));
   console.log('Config fixed and saved');
 } else {
