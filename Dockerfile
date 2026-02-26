@@ -33,6 +33,10 @@ RUN set -eux; \
   done
 
 RUN pnpm install --no-frozen-lockfile
+
+# Install Playwright Chromium binary for browser support
+RUN npx playwright install chromium
+
 RUN pnpm build
 ENV OPENCLAW_PREFER_PNPM=1
 RUN pnpm ui:install && pnpm ui:build
