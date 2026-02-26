@@ -60,6 +60,9 @@ RUN npm install --omit=dev && npm cache clean --force
 # Copy built openclaw
 COPY --from=openclaw-build /openclaw /openclaw
 
+# Copy Playwright browser binaries from build stage
+COPY --from=openclaw-build /root/.cache/ms-playwright /root/.cache/ms-playwright
+
 # Provide an openclaw executable
 RUN printf '%s\n' '#!/usr/bin/env bash' 'exec node /openclaw/dist/entry.js "$@"' > /usr/local/bin/openclaw \
   && chmod +x /usr/local/bin/openclaw
