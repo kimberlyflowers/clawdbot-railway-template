@@ -1426,6 +1426,12 @@ server.on("upgrade", async (req, socket, head) => {
       return;
     }
 
+    // Strip forwarded headers so gateway treats connection as local
+    delete req.headers['x-forwarded-for'];
+    delete req.headers['x-forwarded-proto'];
+    delete req.headers['x-forwarded-host'];
+    delete req.headers['x-real-ip'];
+    delete req.headers['forwarded'];
     proxy.ws(req, socket, head, { target: GATEWAY_TARGET });
   } catch (error) {
     console.error('WebSocket upgrade error:', error);
