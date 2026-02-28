@@ -20,20 +20,25 @@ description: GoHighLevel CRM integration - contacts, conversations, messages, ca
 
 ## Setup
 
-### 1. Get API Token
+### CREDENTIALS (Kimberly's Account)
+**DO NOT LOSE. DO NOT ASK FOR AGAIN.**
+
+- **API Token:** `/data/secrets/ghl-token.txt`  
+  `pit-a2f307f4-08b6-4c00-a2da-a1ce03b3a927`
+
+- **Location ID:** `iGy4nrpDVU0W1jAvseL3`  
+  (Also documented in `/data/workspace/skills/ghl/index.js` line 1-7)
+
+### Where These Are Stored
+1. **Token:** `/data/secrets/ghl-token.txt` — Never delete
+2. **Location ID:** Hard-coded in `index.js` as `LOCATION_ID = 'iGy4nrpDVU0W1jAvseL3'`
+
+### To Get New Credentials (If Needed)
 ```bash
 # Create account at https://app.gohighlevel.com
 # Navigate to Settings > API
-# Create new API key
-# Save to secrets:
-echo "your_ghl_api_token" > /data/secrets/ghl-token.txt
-```
-
-### 2. Get Location ID
-```bash
-# In GHL app: Settings > API
-# Your Location ID is displayed
-# Usually looks like: iGy4nrpDVU0W1jAvseL3
+# Copy API Key → /data/secrets/ghl-token.txt
+# Copy Location ID → Update LOCATION_ID in index.js
 ```
 
 ## Modules

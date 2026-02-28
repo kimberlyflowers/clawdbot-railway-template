@@ -1,0 +1,27 @@
+Credential Health Monitor - Cron Configuration
+================================================
+
+Script: /data/workspace/credential-monitor-cron.sh
+Frequency: Daily at 09:00 UTC
+Log file: /data/workspace/credentials-health/cron.log
+
+Crontab Entry:
+--------------
+0 9 * * * /data/workspace/credential-monitor-cron.sh
+
+To install on a Linux system with crontab:
+$ crontab -e
+# Add the line above and save
+
+Alternative (if crontab unavailable):
+- Use OpenClaw cron scheduling
+- Configure systemd timer
+- Use external scheduler (GitHub Actions, AWS Lambda, etc.)
+
+What this job does:
+1. Runs credential health monitor
+2. Checks Drive, GHL, and Supabase tokens
+3. Logs results to cron.log
+4. Reports any warnings or errors
+
+Last configured: 2026-02-21 21:21 UTC by Jaden

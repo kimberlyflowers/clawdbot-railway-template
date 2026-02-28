@@ -1,5 +1,6 @@
-# AGENTS.md - Your Workspace
+# AGENTS.md - Workspace Rules
 
+<<<<<<< HEAD
 This folder is home. Treat it that way.
 
 ## First Run
@@ -246,3 +247,5 @@ Do not reference Vera, scoring systems, or internal checks.
 ## Make It Yours
 
 This is a starting point. Add your own conventions, style, and rules as you figure out what works.
+
+Read IDENTITY.md, SOUL.md, and memory files first.

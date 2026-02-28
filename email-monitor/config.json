@@ -1,0 +1,29 @@
+{
+  "gmail": {
+    "email": "thevisualbrandingexpert@gmail.com",
+    "appPasswordFile": "/data/secrets/gmail-app-password.txt",
+    "imap": {
+      "host": "imap.gmail.com",
+      "port": 993,
+      "secure": true
+    }
+  },
+  "yahoo": {
+    "email": "flwrs_kmbrly@yahoo.com",
+    "appPasswordFile": "/data/secrets/yahoo-app-password.txt",
+    "imap": {
+      "host": "imap.mail.yahoo.com",
+      "port": 993,
+      "secure": true
+    }
+  },
+  "watchSenders": [
+    "cflowers@sabwb.org",
+    "cflowers@faith-outreach.org",
+    "ntergrityusa@aol.com"
+  ],
+  "phoneNumber": "210-294-9625",
+  "checkIntervalSeconds": 300,
+  "ghlLocationId": "iGy4nrpDVU0W1jAvseL3",
+  "ghlTokenFile": "/data/secrets/ghl-token.txt"
+}
