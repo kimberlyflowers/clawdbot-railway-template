@@ -84,4 +84,7 @@ COPY start.sh /app/start.sh
 COPY data/init-bloomie-onboarding.sh /app/data/init-bloomie-onboarding.sh
 RUN chmod +x /app/start.sh /app/data/init-bloomie-onboarding.sh
 
+# Pre-install supergateway for MCP server support
+RUN npm install -g supergateway
+
 CMD ["/app/start.sh"]
