@@ -33,6 +33,10 @@ RUN set -eux; \
   done
 
 RUN pnpm install --no-frozen-lockfile
+
+# Install Playwright Chromium binary for browser support
+RUN npx playwright install chromium
+
 RUN pnpm build
 ENV OPENCLAW_PREFER_PNPM=1
 RUN pnpm ui:install && pnpm ui:build
@@ -55,6 +59,9 @@ RUN npm install --omit=dev && npm cache clean --force
 
 # Copy built openclaw
 COPY --from=openclaw-build /openclaw /openclaw
+
+# Copy Playwright browser binaries from build stage
+COPY --from=openclaw-build /root/.cache/ms-playwright /root/.cache/ms-playwright
 
 # Provide an openclaw executable
 RUN printf '%s\n' '#!/usr/bin/env bash' 'exec node /openclaw/dist/entry.js "$@"' > /usr/local/bin/openclaw \

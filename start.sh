@@ -73,7 +73,7 @@ async function ensureCORS(retries = 0) {
       const c = JSON.parse(fs.readFileSync(p));
       if (!c.gateway) c.gateway = {};
       if (!c.gateway.controlUi) c.gateway.controlUi = {};
-      c.gateway.controlUi.allowedOrigins = ['https://openclaw-railway-template-production-b301.up.railway.app'];
+      c.gateway.controlUi.allowedOrigins = ['*'];
       fs.writeFileSync(p, JSON.stringify(c, null, 2));
       console.log('CORS allowedOrigins applied successfully');
       return;
